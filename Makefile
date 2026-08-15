@@ -9,12 +9,14 @@ help:
 	@echo "  make down    - stop Docker Compose services"
 	@echo "  make logs    - follow Docker Compose logs"
 	@echo "  make test    - run package unit tests with coverage"
-	@echo "  make check   - run the compose smoke check"
+	@echo "  make check   - run Vitest compose integration tests and Playwright E2E tests"
 
 install:
 	npm --prefix libs/tempo install
 	npm --prefix harness install
 	npm --prefix ui install
+	npm --prefix integration install
+	npm --prefix integration exec playwright install chromium
 
 build:
 	docker compose build
@@ -37,4 +39,4 @@ test:
 	npm --prefix ui run coverage
 
 check:
-	./scripts/compose-check.sh
+	npm --prefix integration run check

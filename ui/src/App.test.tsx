@@ -2,13 +2,17 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '@/App'
+import { createMockHarnessApi } from '@/service/api/MockHarnessApi'
 import { GlobalProvider } from '@/service/GlobalService'
 import { mockState } from '@/service/mock'
 import type { GlobalState } from '@/service/schema'
 
-function renderApp(initialState: GlobalState = mockState) {
+function renderApp(
+	initialState: GlobalState = mockState,
+	api = createMockHarnessApi(),
+) {
 	return render(
-		<GlobalProvider initialState={initialState}>
+		<GlobalProvider initialState={initialState} api={api}>
 			<App />
 		</GlobalProvider>,
 	)
@@ -43,9 +47,31 @@ describe('App', () => {
 	})
 
 	it('shows an empty state when there are no projects', () => {
-		renderApp({ projects: [], selectedProjectId: null, timeline: [] })
+		renderApp(
+			{
+				projects: [],
+				selectedProjectId: null,
+				timeline: [],
+				error: null,
+			},
+			{
+				listProjects: async () => [],
+				sendMessage: async () => [],
+			},
+		)
 
 		expect(screen.getByText('No projects')).toBeInTheDocument()
 		expect(screen.queryByTestId('select-project')).not.toBeInTheDocument()
+	})
+
+	it('shows an error banner when the global state has an error', () => {
+		renderApp({
+			...mockState,
+			error: 'Failed to load projects',
+		})
+
+		expect(screen.getByTestId('error-banner')).toHaveTextContent(
+			'Failed to load projects',
+		)
 	})
 })

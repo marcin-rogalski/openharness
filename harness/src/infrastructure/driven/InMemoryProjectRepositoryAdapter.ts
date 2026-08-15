@@ -9,4 +9,8 @@ export default class InMemoryProjectRepositoryAdapter
 	async findById(id: string): Promise<Project | null> {
 		return this.projects.find((project) => project.id === id) ?? null
 	}
+
+	async list(): Promise<Project[]> {
+		return [...this.projects]
+	}
 }

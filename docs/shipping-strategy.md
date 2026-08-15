@@ -35,10 +35,11 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 ### Phase 1: Docker Compose integration and shipping
 
 - `harness` service runs the built harness.
-- `ui` service serves the built UI.
+- `ui` service serves the built UI and proxies `/api` to the harness.
 - `~/.openharness/projects` is mounted into the harness as `/projects`.
 - environment variables are injected from the host.
 - the harness remains the only component with project and agent access.
+- `make check` runs the `integration` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
 
 ### Phase 2: local composer
 
@@ -64,4 +65,4 @@ Dev mode and production mode must use the same:
 - API contracts;
 - test expectations.
 
-`make watch` may use source watchers, but `make start` must run built artifacts. Later integration checks should start the built harness and built UI, then verify the same user-visible behavior covered by unit tests.
+`make watch` may use source watchers, but `make start` must run built artifacts. `make check` starts the built harness and built UI through Docker Compose, then runs Vitest API/proxy integration tests and Playwright browser E2E tests that verify the same user-visible behavior covered by unit tests.

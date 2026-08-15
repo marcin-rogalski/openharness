@@ -40,5 +40,10 @@ export function globalReducer(
 				...state,
 				timeline: [...state.timeline, action.entry],
 			}
+		case 'error/set':
+			return {
+				...state,
+				error: action.error,
+			}
 	}
 }

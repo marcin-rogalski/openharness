@@ -52,6 +52,15 @@
 	color: #6b7280;
 }
 
+.error {
+	margin: 0 0 1rem;
+	padding: 0.75rem;
+	border: 1px solid rgba(239, 68, 68, 0.4);
+	border-radius: 0.5rem;
+	background: rgba(239, 68, 68, 0.08);
+	color: #b91c1c;
+}
+
 .selected {
 	margin-top: 1.5rem;
 	color: #2563eb;

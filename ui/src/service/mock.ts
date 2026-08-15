@@ -7,4 +7,5 @@ export const mockState: GlobalState = {
 	],
 	selectedProjectId: null,
 	timeline: [],
+	error: null,
 }

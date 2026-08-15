@@ -10,6 +10,7 @@ function createProjectRepository(project: { id: string } | null) {
 			project && project.id === id
 				? { id: project.id, name: 'Test', status: 'idle' as const }
 				: null,
+		list: async () => [],
 	} as ProjectRepositoryPort
 }
 

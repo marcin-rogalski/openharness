@@ -9,6 +9,7 @@ const baseState: GlobalState = {
 	],
 	selectedProjectId: 'project-1',
 	timeline: [],
+	error: null,
 }
 
 describe('globalReducer', () => {
@@ -77,6 +78,20 @@ describe('globalReducer', () => {
 		})
 
 		expect(next.timeline).toEqual([entry])
+	})
+
+	it('sets and clears the error state', () => {
+		const withError = globalReducer(baseState, {
+			type: 'error/set',
+			error: 'Something went wrong',
+		})
+		expect(withError.error).toBe('Something went wrong')
+
+		const cleared = globalReducer(withError, {
+			type: 'error/set',
+			error: null,
+		})
+		expect(cleared.error).toBeNull()
 	})
 
 	it('rejects invalid actions', () => {

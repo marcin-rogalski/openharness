@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import { createMockHarnessApi } from './api/MockHarnessApi'
 import { GlobalProvider, useGlobal } from './GlobalService'
+import { emptyState } from './initialState'
 import { mockState } from './mock'
+import type { GlobalState } from './schema'
 
 function Probe() {
 	const { state, actions } = useGlobal()
@@ -14,6 +17,7 @@ function Probe() {
 				{state.selectedProjectId ?? 'none'}
 			</span>
 			<span data-testid="timeline-count">{state.timeline.length}</span>
+			<span data-testid="error">{state.error ?? 'none'}</span>
 			<button
 				type="button"
 				data-testid="select-project"
@@ -24,7 +28,7 @@ function Probe() {
 			<button
 				type="button"
 				data-testid="send-message"
-				onClick={() => actions.sendMessage('Hello')}
+				onClick={() => void actions.sendMessage('Hello')}
 			>
 				Send
 			</button>
@@ -33,10 +37,20 @@ function Probe() {
 }
 
 describe('GlobalService', () => {
+	it('loads projects from the API on mount', async () => {
+		render(
+			<GlobalProvider initialState={emptyState} api={createMockHarnessApi()}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		expect(await screen.findByTestId('project-count')).toHaveTextContent('2')
+	})
+
 	it('exposes validated global state and actions', async () => {
 		const user = userEvent.setup()
 		render(
-			<GlobalProvider initialState={mockState}>
+			<GlobalProvider initialState={mockState} api={createMockHarnessApi()}>
 				<Probe />
 			</GlobalProvider>,
 		)
@@ -64,7 +78,7 @@ describe('GlobalService', () => {
 	it('updates projects through actions', async () => {
 		const user = userEvent.setup()
 		render(
-			<GlobalProvider initialState={mockState}>
+			<GlobalProvider initialState={mockState} api={createMockHarnessApi()}>
 				<ProjectSetter />
 			</GlobalProvider>,
 		)
@@ -74,10 +88,10 @@ describe('GlobalService', () => {
 		expect(screen.getByTestId('project-count')).toHaveTextContent('0')
 	})
 
-	it('appends a user message and mocked agent entries when a project is selected', async () => {
+	it('appends API timeline entries when a project is selected', async () => {
 		const user = userEvent.setup()
 		render(
-			<GlobalProvider initialState={mockState}>
+			<GlobalProvider initialState={mockState} api={createMockHarnessApi()}>
 				<Probe />
 			</GlobalProvider>,
 		)
@@ -85,13 +99,15 @@ describe('GlobalService', () => {
 		await user.click(screen.getByTestId('select-project'))
 		await user.click(screen.getByTestId('send-message'))
 
-		expect(screen.getByTestId('timeline-count')).toHaveTextContent('5')
+		await waitFor(() =>
+			expect(screen.getByTestId('timeline-count')).toHaveTextContent('5'),
+		)
 	})
 
 	it('ignores messages when no project is selected', async () => {
 		const user = userEvent.setup()
 		render(
-			<GlobalProvider initialState={mockState}>
+			<GlobalProvider initialState={mockState} api={createMockHarnessApi()}>
 				<Probe />
 			</GlobalProvider>,
 		)
@@ -99,6 +115,44 @@ describe('GlobalService', () => {
 		await user.click(screen.getByTestId('send-message'))
 
 		expect(screen.getByTestId('timeline-count')).toHaveTextContent('0')
+	})
+
+	it('shows an error when listing projects fails', async () => {
+		const api = {
+			listProjects: vi.fn().mockRejectedValue(new Error('boom')),
+			sendMessage: vi.fn(),
+		}
+
+		render(
+			<GlobalProvider initialState={emptyState} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		expect(await screen.findByTestId('error')).toHaveTextContent('boom')
+	})
+
+	it('shows an error when sending a message fails', async () => {
+		const user = userEvent.setup()
+		const api = {
+			listProjects: vi.fn().mockResolvedValue(mockState.projects),
+			sendMessage: vi.fn().mockRejectedValue(new Error('send boom')),
+		}
+		const state: GlobalState = {
+			...mockState,
+			selectedProjectId: 'project-1',
+		}
+
+		render(
+			<GlobalProvider initialState={state} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		await user.click(screen.getByTestId('select-project'))
+		await user.click(screen.getByTestId('send-message'))
+
+		expect(await screen.findByTestId('error')).toHaveTextContent('send boom')
 	})
 })
 

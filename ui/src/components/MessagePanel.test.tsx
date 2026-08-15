@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
+import { createMockHarnessApi } from '@/service/api/MockHarnessApi'
 import { GlobalProvider } from '@/service/GlobalService'
 import { mockState } from '@/service/mock'
 import type { GlobalState } from '@/service/schema'
@@ -8,7 +9,7 @@ import MessagePanel from './MessagePanel'
 
 function renderPanel(initialState: GlobalState = mockState) {
 	render(
-		<GlobalProvider initialState={initialState}>
+		<GlobalProvider initialState={initialState} api={createMockHarnessApi()}>
 			<MessagePanel />
 		</GlobalProvider>,
 	)
@@ -34,7 +35,9 @@ describe('MessagePanel', () => {
 		await user.click(screen.getByTestId('send-message'))
 
 		expect(screen.getByTestId('message-input')).toHaveValue('')
-		expect(screen.getByTestId('timeline-user')).toHaveTextContent('Hello')
+		expect(await screen.findByTestId('timeline-user')).toHaveTextContent(
+			'Hello',
+		)
 		expect(screen.getByTestId('timeline-thinking')).toHaveTextContent(
 			'Thinking about: Hello',
 		)

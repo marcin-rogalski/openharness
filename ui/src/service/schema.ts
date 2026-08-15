@@ -41,6 +41,7 @@ export const GlobalStateSchema = z
 		projects: z.array(ProjectSchema),
 		selectedProjectId: z.string().nullable(),
 		timeline: z.array(TimelineEntrySchema),
+		error: z.string().nullable(),
 	})
 	.refine(
 		(state) =>
@@ -63,6 +64,10 @@ export const GlobalActionSchema = z.discriminatedUnion('type', [
 	z.object({
 		type: z.literal('timeline/append'),
 		entry: TimelineEntrySchema,
+	}),
+	z.object({
+		type: z.literal('error/set'),
+		error: z.string().nullable(),
 	}),
 ])
 

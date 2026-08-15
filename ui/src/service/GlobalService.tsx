@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react'
-import { createContext, useContext, useMemo, useReducer } from 'react'
-import { createMockTimelineEntries } from './mockTimeline'
+import {
+	createContext,
+	useContext,
+	useEffect,
+	useMemo,
+	useReducer,
+} from 'react'
+import type { HarnessApi } from './api/HarnessApi'
 import { globalReducer } from './reducer'
 import { type GlobalState, GlobalStateSchema, type Project } from './schema'
 
@@ -9,7 +15,7 @@ interface GlobalContextValue {
 	actions: {
 		setProjects: (projects: Project[]) => void
 		selectProject: (projectId: string | null) => void
-		sendMessage: (content: string) => void
+		sendMessage: (content: string) => Promise<void>
 	}
 }
 
@@ -18,17 +24,47 @@ const GlobalContext = createContext<GlobalContextValue | null>(null)
 interface GlobalProviderProps {
 	children: ReactNode
 	initialState: GlobalState
+	api: HarnessApi
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+	return error instanceof Error ? error.message : fallback
 }
 
 export function GlobalProvider({
 	children,
 	initialState,
+	api,
 }: GlobalProviderProps) {
 	const [state, dispatch] = useReducer(
 		globalReducer,
 		initialState,
 		GlobalStateSchema.parse,
 	)
+
+	useEffect(() => {
+		let active = true
+
+		api
+			.listProjects()
+			.then((projects) => {
+				if (active) {
+					dispatch({ type: 'projects/set', projects })
+				}
+			})
+			.catch((error: unknown) => {
+				if (active) {
+					dispatch({
+						type: 'error/set',
+						error: getErrorMessage(error, 'Failed to load projects'),
+					})
+				}
+			})
+
+		return () => {
+			active = false
+		}
+	}, [api])
 
 	const value = useMemo<GlobalContextValue>(
 		() => ({
@@ -37,30 +73,29 @@ export function GlobalProvider({
 				setProjects: (projects) => dispatch({ type: 'projects/set', projects }),
 				selectProject: (projectId) =>
 					dispatch({ type: 'project/select', projectId }),
-				sendMessage: (content) => {
+				sendMessage: async (content) => {
 					const trimmed = content.trim()
 					const projectId = state.selectedProjectId
 					if (!trimmed || !projectId) {
 						return
 					}
 
-					dispatch({
-						type: 'timeline/append',
-						entry: {
-							type: 'user_message',
-							id: crypto.randomUUID(),
-							projectId,
-							content: trimmed,
-						},
-					})
-
-					for (const entry of createMockTimelineEntries(projectId, trimmed)) {
-						dispatch({ type: 'timeline/append', entry })
+					try {
+						const entries = await api.sendMessage(projectId, trimmed)
+						for (const entry of entries) {
+							dispatch({ type: 'timeline/append', entry })
+						}
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to send message'),
+						})
 					}
 				},
 			},
 		}),
-		[state],
+		[state, api],
 	)
 
 	return (

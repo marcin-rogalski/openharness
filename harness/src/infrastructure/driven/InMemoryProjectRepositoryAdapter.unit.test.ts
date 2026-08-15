@@ -18,4 +18,16 @@ describe('InMemoryProjectRepositoryAdapter', () => {
 
 		await expect(repository.findById('missing')).resolves.toBeNull()
 	})
+
+	it('lists all stored projects', async () => {
+		const repository = new InMemoryProjectRepositoryAdapter([
+			{ id: 'project-1', name: 'OpenHarness', status: 'running' },
+			{ id: 'project-2', name: 'Tempo', status: 'idle' },
+		])
+
+		await expect(repository.list()).resolves.toEqual([
+			{ id: 'project-1', name: 'OpenHarness', status: 'running' },
+			{ id: 'project-2', name: 'Tempo', status: 'idle' },
+		])
+	})
 })

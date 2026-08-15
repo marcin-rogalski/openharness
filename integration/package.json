@@ -1,0 +1,21 @@
+{
+	"name": "@openharness/integration",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"check": "node scripts/check.mjs",
+		"test:compose": "vitest run --config vitest.compose.config.ts",
+		"test:e2e": "playwright test",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --fix ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.1",
+		"@playwright/test": "^1.58.2",
+		"@types/node": "^24.12.4",
+		"typescript": "^5.9.3",
+		"vitest": "^4.1.10"
+	}
+}

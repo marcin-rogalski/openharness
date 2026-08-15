@@ -13,6 +13,12 @@ export default function App() {
 			<h1 className={styles.title}>OpenHarness</h1>
 			<p className={styles.description}>Projects</p>
 
+			{state.error ? (
+				<p className={styles.error} data-testid="error-banner">
+					{state.error}
+				</p>
+			) : null}
+
 			{state.projects.length === 0 ? (
 				<p className={styles.empty}>No projects</p>
 			) : (

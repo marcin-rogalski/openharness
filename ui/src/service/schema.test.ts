@@ -92,11 +92,13 @@ describe('GlobalStateSchema', () => {
 				projects: [],
 				selectedProjectId: null,
 				timeline: [],
+				error: null,
 			}),
 		).toEqual({
 			projects: [],
 			selectedProjectId: null,
 			timeline: [],
+			error: null,
 		})
 	})
 
@@ -106,6 +108,7 @@ describe('GlobalStateSchema', () => {
 				projects: [],
 				selectedProjectId: 'nope',
 				timeline: [],
+				error: null,
 			}),
 		).toThrow()
 	})
