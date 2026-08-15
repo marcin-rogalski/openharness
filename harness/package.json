@@ -8,6 +8,7 @@
 		"dev": "tsup --watch",
 		"test": "vitest",
 		"test:run": "vitest run",
+		"coverage": "vitest run --coverage",
 		"lint": "biome check .",
 		"lint:fix": "biome check --fix .",
 		"format": "biome format --write ."

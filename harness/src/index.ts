@@ -1,7 +1,12 @@
+import { mkdirSync } from 'node:fs'
 import { Server } from '@openharness/tempo'
+import { loadConfig } from './config'
 
 async function main() {
-	const server = new Server({ port: 3000 })
+	const config = loadConfig()
+	mkdirSync(config.projectsDir, { recursive: true })
+
+	const server = new Server({ port: config.port })
 
 	const driven = await import('./composedDriven').then((m) => m.default())
 	const usecases = await import('./composedUsecases').then((m) =>
@@ -17,6 +22,7 @@ async function main() {
 
 	const port = await server.start()
 	console.log(`Server running on port ${port}`)
+	console.log(`Projects dir: ${config.projectsDir}`)
 }
 
 main().catch((err) => {

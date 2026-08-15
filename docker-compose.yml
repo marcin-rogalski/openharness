@@ -1,0 +1,26 @@
+services:
+  harness:
+    build:
+      context: .
+      dockerfile: harness/Dockerfile
+    image: openharness-harness:local
+    ports:
+      - '${HARNESS_PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=production
+      - HARNESS_PORT=3000
+      - PROJECTS_DIR=/projects
+    volumes:
+      - ~/.openharness/projects:/projects
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    image: openharness-ui:local
+    ports:
+      - '${UI_PORT:-4173}:80'
+    depends_on:
+      - harness
+    restart: unless-stopped

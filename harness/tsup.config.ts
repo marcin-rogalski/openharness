@@ -9,4 +9,10 @@ export default defineConfig({
 	sourcemap: true,
 	splitting: false,
 	treeshake: true,
+	noExternal: ['@openharness/tempo'],
+	esbuildOptions(options) {
+		options.banner = {
+			js: "import { createRequire as __createRequire } from 'node:module'; const require = __createRequire(import.meta.url);",
+		}
+	},
 })

@@ -30,9 +30,21 @@ export interface RegisterableEndpoint {
 	) => Promise<unknown>
 }
 
-interface RequestWithRouterData extends IncomingMessage {
-	params?: unknown
-	query?: unknown
+function parseQuery(url: string | undefined): Record<string, string> {
+	if (!url) {
+		return {}
+	}
+
+	const queryString = url.split('?', 2)[1]
+	if (!queryString) {
+		return {}
+	}
+
+	const query: Record<string, string> = {}
+	for (const [key, value] of new URLSearchParams(queryString)) {
+		query[key] = value
+	}
+	return query
 }
 
 const DEFAULT_PORT = 3000
@@ -65,10 +77,14 @@ export default class Server {
 		this.router.on(
 			info.method,
 			info.path,
-			async (request: IncomingMessage, reply: ServerResponse) => {
+			async (
+				request: IncomingMessage,
+				reply: ServerResponse,
+				params: Record<string, string | undefined> | undefined,
+			) => {
 				try {
-					const params = (request as RequestWithRouterData).params ?? {}
-					const query = (request as RequestWithRouterData).query ?? {}
+					const routeParams = params ?? {}
+					const query = parseQuery(request.url)
 					let body: unknown = {}
 
 					if (info.schemas.body) {
@@ -88,7 +104,12 @@ export default class Server {
 						}
 					}
 
-					const output = await handler(params, query, body, request.headers)
+					const output = await handler(
+						routeParams,
+						query,
+						body,
+						request.headers,
+					)
 
 					if (info.schemas.response) {
 						const result = info.schemas.response.safeParse(output)
