@@ -1,0 +1,87 @@
+import { describe, expect, it } from 'vitest'
+import { globalReducer } from './reducer'
+import type { GlobalAction, GlobalState } from './schema'
+
+const baseState: GlobalState = {
+	projects: [
+		{ id: 'project-1', name: 'OpenHarness', status: 'running' },
+		{ id: 'project-2', name: 'Tempo', status: 'idle' },
+	],
+	selectedProjectId: 'project-1',
+	timeline: [],
+}
+
+describe('globalReducer', () => {
+	it('replaces projects and keeps a still-valid selection', () => {
+		const state: GlobalState = {
+			...baseState,
+			selectedProjectId: 'project-2',
+		}
+
+		const next = globalReducer(state, {
+			type: 'projects/set',
+			projects: [{ id: 'project-2', name: 'Tempo', status: 'idle' }],
+		})
+
+		expect(next.projects).toHaveLength(1)
+		expect(next.selectedProjectId).toBe('project-2')
+	})
+
+	it('clears the selection when the selected project is removed', () => {
+		const next = globalReducer(baseState, {
+			type: 'projects/set',
+			projects: [{ id: 'project-3', name: 'Other', status: 'failed' }],
+		})
+
+		expect(next.selectedProjectId).toBeNull()
+	})
+
+	it('selects a project', () => {
+		const next = globalReducer(baseState, {
+			type: 'project/select',
+			projectId: 'project-2',
+		})
+
+		expect(next.selectedProjectId).toBe('project-2')
+	})
+
+	it('ignores selecting a project that does not exist', () => {
+		const next = globalReducer(baseState, {
+			type: 'project/select',
+			projectId: 'project-unknown',
+		})
+
+		expect(next.selectedProjectId).toBe('project-1')
+	})
+
+	it('clears the selection', () => {
+		const next = globalReducer(baseState, {
+			type: 'project/select',
+			projectId: null,
+		})
+
+		expect(next.selectedProjectId).toBeNull()
+	})
+
+	it('appends a timeline entry', () => {
+		const entry = {
+			type: 'user_message' as const,
+			id: 'entry-1',
+			projectId: 'project-1',
+			content: 'Hello',
+		}
+
+		const next = globalReducer(baseState, {
+			type: 'timeline/append',
+			entry,
+		})
+
+		expect(next.timeline).toEqual([entry])
+	})
+
+	it('rejects invalid actions', () => {
+		expect(() =>
+			globalReducer(baseState, { type: 'unknown' } as unknown as GlobalAction),
+		).toThrow()
+	})
+})

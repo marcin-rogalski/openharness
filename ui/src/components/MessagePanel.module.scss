@@ -1,0 +1,77 @@
+.panel {
+	margin-top: 2rem;
+	padding: 1rem;
+	border: 1px solid rgba(148, 163, 184, 0.35);
+	border-radius: 0.75rem;
+}
+
+.heading {
+	margin: 0 0 1rem;
+	font-size: 1.25rem;
+}
+
+.empty {
+	margin: 0;
+	color: #6b7280;
+}
+
+.timeline {
+	display: grid;
+	gap: 0.5rem;
+	margin: 0 0 1rem;
+	padding: 0;
+	list-style: none;
+}
+
+.entry {
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	background: rgba(148, 163, 184, 0.08);
+}
+
+.user {
+	font-weight: 600;
+}
+
+.thinking {
+	color: #6b7280;
+	font-style: italic;
+}
+
+.toolCall {
+	color: #d97706;
+	font-family: monospace;
+}
+
+.response {
+	color: #2563eb;
+}
+
+.composer {
+	display: grid;
+	gap: 0.5rem;
+}
+
+.label {
+	font-weight: 600;
+}
+
+.input {
+	padding: 0.5rem;
+	border: 1px solid rgba(148, 163, 184, 0.4);
+	border-radius: 0.5rem;
+}
+
+.button {
+	justify-self: start;
+	padding: 0.35rem 0.75rem;
+	border: 1px solid rgba(148, 163, 184, 0.4);
+	border-radius: 0.5rem;
+	background: transparent;
+	cursor: pointer;
+}
+
+.button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

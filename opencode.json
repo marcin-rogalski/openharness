@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "formatter": {
+    "biome": {
+      "command": ["./scripts/biome-fix.sh", "$FILE"]
+    },
+    "tsc": {
+      "command": ["./scripts/tsc-check.sh", "$FILE"],
+      "extensions": [".ts", ".tsx"]
+    }
+  }
+}
