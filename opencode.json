@@ -8,5 +8,17 @@
       "command": ["./scripts/tsc-check.sh", "$FILE"],
       "extensions": [".ts", ".tsx"]
     }
+  },
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": ["npx", "-y", "@playwright/mcp", "--caps", "core,network,storage,testing"],
+      "enabled": true
+    },
+    "chrome-devtools": {
+      "type": "local",
+      "command": ["npx", "-y", "chrome-devtools-mcp"],
+      "enabled": true
+    }
   }
 }
