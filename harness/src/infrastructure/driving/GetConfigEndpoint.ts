@@ -1,7 +1,7 @@
+import type { EndpointHandler } from '@openharness/tempo'
+import { Endpoint } from '@openharness/tempo'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import { GetConfigResponseDto } from '@/infrastructure/dtos/ConfigDto'
-import { Endpoint } from '@openharness/tempo'
-import type { EndpointHandler } from '@openharness/tempo'
 
 type Schemas = {
 	response: typeof GetConfigResponseDto

@@ -151,4 +151,24 @@ describe('bootstrapConfig', () => {
 			bootstrapConfig({ env, cwd: '/cwd', homeDir }),
 		).rejects.toThrow('Invalid harness config')
 	})
+
+	it('falls back to process env, cwd, and home dir when options are omitted', async () => {
+		const dataDir = await mkdtemp(
+			path.join(os.tmpdir(), 'openharness-bootstrap-'),
+		)
+		const originalDataDir = process.env.OPENHARNESS_DATA_DIR
+		process.env.OPENHARNESS_DATA_DIR = dataDir
+
+		try {
+			const result = await bootstrapConfig()
+
+			expect(result.configPath).toBe(path.join(dataDir, 'config.json'))
+		} finally {
+			if (originalDataDir === undefined) {
+				delete process.env.OPENHARNESS_DATA_DIR
+			} else {
+				process.env.OPENHARNESS_DATA_DIR = originalDataDir
+			}
+		}
+	})
 })

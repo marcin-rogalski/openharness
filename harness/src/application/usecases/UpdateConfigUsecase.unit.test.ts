@@ -1,6 +1,6 @@
+import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { HarnessConfig } from '@/domain/Config'
-import { describe, expect, it, vi } from 'vitest'
 import UpdateConfigUsecase from './UpdateConfigUsecase'
 
 const currentConfig: HarnessConfig = {

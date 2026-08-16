@@ -1,11 +1,11 @@
+import type { EndpointHandler } from '@openharness/tempo'
+import { Endpoint } from '@openharness/tempo'
 import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import {
 	SendMessageBodyDto,
 	SendMessageParamsDto,
 	SendMessageResponseDto,
 } from '@/infrastructure/dtos/SendMessageDto'
-import { Endpoint } from '@openharness/tempo'
-import type { EndpointHandler } from '@openharness/tempo'
 
 type Schemas = {
 	params: typeof SendMessageParamsDto

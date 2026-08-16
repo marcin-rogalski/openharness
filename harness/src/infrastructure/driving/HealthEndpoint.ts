@@ -1,6 +1,6 @@
-import { HealthDto } from '@/infrastructure/dtos/ConfigDto'
-import { Endpoint } from '@openharness/tempo'
 import type { EndpointHandler } from '@openharness/tempo'
+import { Endpoint } from '@openharness/tempo'
+import { HealthDto } from '@/infrastructure/dtos/ConfigDto'
 
 type Schemas = {
 	response: typeof HealthDto

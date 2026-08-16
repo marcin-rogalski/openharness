@@ -1,5 +1,5 @@
-import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import { describe, expect, it } from 'vitest'
+import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import ListProjectsUsecase from './ListProjectsUsecase'
 
 describe('ListProjectsUsecase', () => {

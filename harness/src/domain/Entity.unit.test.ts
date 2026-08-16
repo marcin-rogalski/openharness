@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EntitySchema, createEntity } from './Entity'
+import { createEntity, EntitySchema } from './Entity'
 
 describe('Entity', () => {
 	it('should create an entity with valid defaults', () => {

@@ -5,7 +5,7 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const rootDir = fileURLToPath(new URL('../../', import.meta.url))
-const integrationDir = fileURLToPath(new URL('../', import.meta.url))
+const testsDir = fileURLToPath(new URL('../', import.meta.url))
 const dataDir = join(homedir(), '.openharness')
 
 mkdirSync(dataDir, { recursive: true })
@@ -83,15 +83,15 @@ try {
 	}
 
 	runOrThrow('npm', ['run', 'test:compose'], {
-		cwd: integrationDir,
+		cwd: testsDir,
 		env,
 	})
 	runOrThrow('npm', ['run', 'test:e2e'], {
-		cwd: integrationDir,
+		cwd: testsDir,
 		env,
 	})
 
-	console.log('integration check passed')
+	console.log('test check passed')
 } finally {
 	if (composeStarted) {
 		run('docker', ['compose', 'down', '--remove-orphans'], {

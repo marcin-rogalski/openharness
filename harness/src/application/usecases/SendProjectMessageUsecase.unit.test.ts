@@ -1,7 +1,7 @@
+import { describe, expect, it } from 'vitest'
 import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntimePort'
 import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
-import { describe, expect, it } from 'vitest'
 import SendProjectMessageUsecase from './SendProjectMessageUsecase'
 
 function createProjectRepository(project: { id: string } | null) {
@@ -19,7 +19,10 @@ function createAgentRuntime() {
 		handle: async ({
 			projectId,
 			content,
-		}: { projectId: string; content: string }) => [
+		}: {
+			projectId: string
+			content: string
+		}) => [
 			{
 				type: 'agent_response' as const,
 				id: 'agent-1',

@@ -1,5 +1,5 @@
-import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
 import { describe, expect, it, vi } from 'vitest'
+import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
 import UpdateConfigEndpoint from './UpdateConfigEndpoint'
 
 describe('UpdateConfigEndpoint', () => {

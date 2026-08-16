@@ -1,0 +1,26 @@
+{
+	"name": "openharness",
+	"version": "0.1.0",
+	"private": true,
+	"workspaces": [
+		"libs/*",
+		"harness",
+		"ui",
+		"tests"
+	],
+	"scripts": {
+		"build": "npm run build --workspaces --if-present",
+		"test": "npm run test:run --workspaces --if-present",
+		"coverage": "npm run coverage --workspaces --if-present",
+		"lint": "npm run lint --workspaces --if-present",
+		"check": "npm run check -w @openharness/tests"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.1",
+		"@types/node": "^24.12.4",
+		"@vitest/coverage-v8": "^4.1.10",
+		"tsup": "^8.3.0",
+		"typescript": "^5.9.3",
+		"vitest": "^4.1.10"
+	}
+}

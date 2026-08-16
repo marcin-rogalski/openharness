@@ -1,10 +1,10 @@
+import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
 import UpdateConfigUsecase from '@/application/usecases/UpdateConfigUsecase'
 import type { HarnessConfig } from '@/domain/Config'
-import { describe, expect, it, vi } from 'vitest'
 import composeDriven from './composedDriven'
 import composeUsecases from './composedUsecases'
 

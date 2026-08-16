@@ -1,5 +1,5 @@
-import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import { describe, expect, it, vi } from 'vitest'
+import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import SendProjectMessageEndpoint from './SendProjectMessageEndpoint'
 
 describe('SendProjectMessageEndpoint', () => {

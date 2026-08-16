@@ -1,5 +1,5 @@
-import type { HarnessConfig } from '@/domain/Config'
 import { z } from 'zod'
+import type { HarnessConfig } from '@/domain/Config'
 
 export const UpdateConfigInputSchema = z
 	.object({

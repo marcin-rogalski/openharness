@@ -1,7 +1,7 @@
+import type { EndpointHandler } from '@openharness/tempo'
+import { Endpoint } from '@openharness/tempo'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
 import { ListProjectsResponseDto } from '@/infrastructure/dtos/ListProjectsDto'
-import { Endpoint } from '@openharness/tempo'
-import type { EndpointHandler } from '@openharness/tempo'
 
 type Schemas = {
 	response: typeof ListProjectsResponseDto

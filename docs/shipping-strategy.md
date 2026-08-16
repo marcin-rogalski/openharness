@@ -41,7 +41,7 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 - `~/.openharness/config.json` is the harness config source of truth after first boot.
 - environment variables seed the config file only when it does not exist yet.
 - the harness remains the only component with project and agent access.
-- `make check` runs the `integration` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
+- `make check` runs the `tests` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
 
 ### Phase 2: local composer
 

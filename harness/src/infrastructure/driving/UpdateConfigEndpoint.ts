@@ -1,10 +1,10 @@
+import type { EndpointHandler } from '@openharness/tempo'
+import { Endpoint } from '@openharness/tempo'
 import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
 import {
 	UpdateConfigBodyDto,
 	UpdateConfigResponseDto,
 } from '@/infrastructure/dtos/ConfigDto'
-import { Endpoint } from '@openharness/tempo'
-import type { EndpointHandler } from '@openharness/tempo'
 
 type Schemas = {
 	body: typeof UpdateConfigBodyDto

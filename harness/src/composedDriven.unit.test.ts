@@ -1,7 +1,7 @@
+import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
-import { describe, expect, it, vi } from 'vitest'
 import composeDriven from './composedDriven'
 
 describe('composeDriven', () => {

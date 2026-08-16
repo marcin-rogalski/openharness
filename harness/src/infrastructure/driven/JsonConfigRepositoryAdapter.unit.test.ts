@@ -1,8 +1,8 @@
 import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import type { HarnessConfig } from '@/domain/Config'
 import { describe, expect, it } from 'vitest'
+import type { HarnessConfig } from '@/domain/Config'
 import JsonConfigRepositoryAdapter from './JsonConfigRepositoryAdapter'
 
 const validConfig: HarnessConfig = {
@@ -46,5 +46,12 @@ describe('JsonConfigRepositoryAdapter', () => {
 		const adapter = new JsonConfigRepositoryAdapter(configPath)
 
 		await expect(adapter.load()).rejects.toThrow('Invalid harness config')
+	})
+
+	it('rethrows non-ENOENT read errors', async () => {
+		const dir = await mkdtemp(path.join(os.tmpdir(), 'openharness-config-'))
+		const adapter = new JsonConfigRepositoryAdapter(dir)
+
+		await expect(adapter.load()).rejects.toMatchObject({ code: 'EISDIR' })
 	})
 })

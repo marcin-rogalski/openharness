@@ -1,5 +1,5 @@
-import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
 import { describe, expect, it, vi } from 'vitest'
+import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
 import ListProjectsEndpoint from './ListProjectsEndpoint'
 
 describe('ListProjectsEndpoint', () => {

@@ -2,10 +2,15 @@ FROM node:24-alpine AS build
 
 WORKDIR /app
 
+COPY package.json package-lock.json ./
+COPY libs/tempo/package.json ./libs/tempo/
+COPY harness/package.json ./harness/
+RUN npm ci
+
 COPY libs/tempo ./libs/tempo
 COPY harness ./harness
 
-RUN cd /app/libs/tempo && npm ci && cd /app/harness && npm ci && npm run build
+RUN npm run build -w harness
 
 FROM node:24-alpine
 

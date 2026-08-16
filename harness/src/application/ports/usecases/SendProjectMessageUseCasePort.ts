@@ -1,5 +1,5 @@
-import type { AgentTimelineEntry } from '@/domain/AgentTimelineEntry'
 import { z } from 'zod'
+import type { AgentTimelineEntry } from '@/domain/AgentTimelineEntry'
 
 export const SendProjectMessageInputSchema = z.object({
 	projectId: z.string().min(1),
