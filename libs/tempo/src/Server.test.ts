@@ -269,4 +269,130 @@ describe('Server', () => {
 			await addressServer.stop()
 		}
 	})
+
+	it('should handle CORS preflight and response headers', async () => {
+		const corsServer = new Server({ port: 0, cors: true })
+		corsServer.use(new Endpoint('GET', '/cors', {}, async () => ({ ok: true })))
+		const corsPort = await corsServer.start()
+
+		try {
+			const preflight = await fetch(`http://localhost:${corsPort}/cors`, {
+				method: 'OPTIONS',
+				headers: {
+					Origin: 'http://example.com',
+					'Access-Control-Request-Method': 'GET',
+				},
+			})
+			expect(preflight.status).toBe(204)
+			expect(preflight.headers.get('access-control-allow-origin')).toBe('*')
+			expect(preflight.headers.get('access-control-allow-methods')).toContain(
+				'GET',
+			)
+			expect(preflight.headers.get('access-control-allow-headers')).toBeNull()
+
+			const requestedPreflight = await fetch(
+				`http://localhost:${corsPort}/cors`,
+				{
+					method: 'OPTIONS',
+					headers: {
+						Origin: 'http://example.com',
+						'Access-Control-Request-Method': 'GET',
+						'Access-Control-Request-Headers': 'content-type',
+					},
+				},
+			)
+			expect(
+				requestedPreflight.headers.get('access-control-allow-headers'),
+			).toBe('content-type')
+
+			const response = await fetch(`http://localhost:${corsPort}/cors`, {
+				headers: { Origin: 'http://example.com' },
+			})
+			expect(response.status).toBe(200)
+			expect(response.headers.get('access-control-allow-origin')).toBe('*')
+		} finally {
+			await corsServer.stop()
+		}
+	})
+
+	it('should restrict CORS origins and credentials', async () => {
+		const corsServer = new Server({
+			port: 0,
+			cors: {
+				allowedOrigins: ['http://example.com'],
+				allowedHeaders: ['x-custom'],
+				allowCredentials: true,
+			},
+		})
+		corsServer.use(new Endpoint('GET', '/cors', {}, async () => ({ ok: true })))
+		const corsPort = await corsServer.start()
+
+		try {
+			const preflight = await fetch(`http://localhost:${corsPort}/cors`, {
+				method: 'OPTIONS',
+				headers: {
+					Origin: 'http://example.com',
+					'Access-Control-Request-Method': 'GET',
+					'Access-Control-Request-Headers': 'x-custom, x-other',
+				},
+			})
+			expect(preflight.headers.get('access-control-allow-origin')).toBe(
+				'http://example.com',
+			)
+			expect(preflight.headers.get('access-control-allow-credentials')).toBe(
+				'true',
+			)
+			expect(preflight.headers.get('access-control-allow-headers')).toBe(
+				'x-custom',
+			)
+
+			const response = await fetch(`http://localhost:${corsPort}/cors`, {
+				headers: { Origin: 'http://evil.example' },
+			})
+			expect(response.headers.get('access-control-allow-origin')).toBeNull()
+		} finally {
+			await corsServer.stop()
+		}
+	})
+
+	it('should omit CORS headers when CORS is disabled', async () => {
+		const plainServer = new Server({ port: 0 })
+		plainServer.use(
+			new Endpoint('GET', '/plain', {}, async () => ({ ok: true })),
+		)
+		const plainPort = await plainServer.start()
+
+		try {
+			const response = await fetch(`http://localhost:${plainPort}/plain`, {
+				headers: { Origin: 'http://example.com' },
+			})
+			expect(response.status).toBe(200)
+			expect(response.headers.get('access-control-allow-origin')).toBeNull()
+		} finally {
+			await plainServer.stop()
+		}
+	})
+
+	it('should echo the origin when wildcard CORS allows credentials', async () => {
+		const corsServer = new Server({
+			port: 0,
+			cors: { allowedOrigins: ['*'], allowCredentials: true },
+		})
+		corsServer.use(new Endpoint('GET', '/cors', {}, async () => ({ ok: true })))
+		const corsPort = await corsServer.start()
+
+		try {
+			const response = await fetch(`http://localhost:${corsPort}/cors`, {
+				headers: { Origin: 'http://example.com' },
+			})
+			expect(response.headers.get('access-control-allow-origin')).toBe(
+				'http://example.com',
+			)
+			expect(response.headers.get('access-control-allow-credentials')).toBe(
+				'true',
+			)
+		} finally {
+			await corsServer.stop()
+		}
+	})
 })

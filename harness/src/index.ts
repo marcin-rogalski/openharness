@@ -1,20 +1,19 @@
 import { mkdirSync } from 'node:fs'
 import { Server } from '@openharness/tempo'
-import { loadConfig } from './config'
+import composeDriven from './composedDriven'
+import composeDriving from './composedDriving'
+import composeUsecases from './composedUsecases'
+import { bootstrapConfig } from './infrastructure/driven/bootstrapConfig'
 
 async function main() {
-	const config = loadConfig()
+	const { config, repository, configPath } = await bootstrapConfig()
 	mkdirSync(config.projectsDir, { recursive: true })
 
-	const server = new Server({ port: config.port })
+	const server = new Server({ port: config.port, cors: true })
 
-	const driven = await import('./composedDriven').then((m) => m.default())
-	const usecases = await import('./composedUsecases').then((m) =>
-		m.default(driven),
-	)
-	const driving = await import('./composedDriving').then((m) =>
-		m.default(usecases),
-	)
+	const driven = await composeDriven(repository)
+	const usecases = composeUsecases(driven)
+	const driving = composeDriving(usecases)
 
 	for (const endpoint of driving) {
 		server.use(endpoint)
@@ -22,6 +21,7 @@ async function main() {
 
 	const port = await server.start()
 	console.log(`Server running on port ${port}`)
+	console.log(`Config file: ${configPath}`)
 	console.log(`Projects dir: ${config.projectsDir}`)
 }
 

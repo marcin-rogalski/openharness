@@ -4,6 +4,13 @@
 	padding: 2rem 1rem;
 }
 
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
 .title {
 	margin: 0;
 	font-size: 2rem;

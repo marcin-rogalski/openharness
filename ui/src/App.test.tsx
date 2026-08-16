@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from '@/App'
 import { createMockHarnessApi } from '@/service/api/MockHarnessApi'
+import type { UiConfig } from '@/service/config/UiConfig'
 import { GlobalProvider } from '@/service/GlobalService'
 import { mockState } from '@/service/mock'
 import type { GlobalState } from '@/service/schema'
@@ -10,10 +11,11 @@ import type { GlobalState } from '@/service/schema'
 function renderApp(
 	initialState: GlobalState = mockState,
 	api = createMockHarnessApi(),
+	uiConfig: UiConfig | null = null,
 ) {
 	return render(
 		<GlobalProvider initialState={initialState} api={api}>
-			<App />
+			<App api={api} uiConfig={uiConfig} />
 		</GlobalProvider>,
 	)
 }
@@ -55,8 +57,22 @@ describe('App', () => {
 				error: null,
 			},
 			{
+				health: async () => {},
 				listProjects: async () => [],
 				sendMessage: async () => [],
+				getConfig: async () => ({
+					schemaVersion: 1,
+					port: 3000,
+					projectsDir: '/tmp/projects',
+				}),
+				updateConfig: async (input) => ({
+					config: {
+						schemaVersion: 1,
+						port: input.port ?? 3000,
+						projectsDir: input.projectsDir ?? '/tmp/projects',
+					},
+					restartRequired: input.port !== undefined && input.port !== 3000,
+				}),
 			},
 		)
 
@@ -73,5 +89,30 @@ describe('App', () => {
 		expect(screen.getByTestId('error-banner')).toHaveTextContent(
 			'Failed to load projects',
 		)
+	})
+
+	it('opens the settings dialog when an API is available', async () => {
+		const user = userEvent.setup()
+		renderApp(mockState, createMockHarnessApi(), {
+			schemaVersion: 1,
+			harnessBaseUrl: '',
+		})
+
+		await user.click(screen.getByTestId('open-settings'))
+
+		expect(await screen.findByTestId('settings-dialog')).toBeInTheDocument()
+	})
+
+	it('closes the settings dialog', async () => {
+		const user = userEvent.setup()
+		renderApp(mockState, createMockHarnessApi(), {
+			schemaVersion: 1,
+			harnessBaseUrl: '',
+		})
+
+		await user.click(screen.getByTestId('open-settings'))
+		await user.click(await screen.findByTestId('close-settings'))
+
+		expect(screen.queryByTestId('settings-dialog')).not.toBeInTheDocument()
 	})
 })

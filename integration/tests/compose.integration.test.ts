@@ -14,6 +14,25 @@ interface SendMessageResponse {
 	entries: Array<{ type: string }>
 }
 
+interface HealthResponse {
+	status: 'ok'
+}
+
+interface HarnessConfig {
+	schemaVersion: 1
+	port: number
+	projectsDir: string
+}
+
+interface GetConfigResponse {
+	config: HarnessConfig
+}
+
+interface UpdateConfigResponse {
+	config: HarnessConfig
+	restartRequired: boolean
+}
+
 function requireBaseUrl(value: string | undefined, name: string): string {
 	if (!value) {
 		throw new Error(`${name} must be provided by the integration check`)
@@ -90,6 +109,58 @@ describe('Docker Compose integration', () => {
 		expect(body.entries.map((entry) => entry.type)).toEqual(
 			expect.arrayContaining(['user_message', 'agent_response']),
 		)
+	})
+
+	it('exposes the harness health API', async () => {
+		const baseUrl = requireBaseUrl(
+			process.env.HARNESS_BASE_URL,
+			'HARNESS_BASE_URL',
+		)
+
+		const response = await fetch(`${baseUrl}/api/health`)
+
+		expect(response.status).toBe(200)
+		expect((await response.json()) as HealthResponse).toEqual({
+			status: 'ok',
+		})
+	})
+
+	it('reads and updates the harness config API', async () => {
+		const baseUrl = requireBaseUrl(
+			process.env.HARNESS_BASE_URL,
+			'HARNESS_BASE_URL',
+		)
+
+		const getConfigResponse = await fetch(`${baseUrl}/api/config`)
+		expect(getConfigResponse.status).toBe(200)
+		const { config } = (await getConfigResponse.json()) as GetConfigResponse
+		expect(config.schemaVersion).toBe(1)
+		expect(config.port).toBeGreaterThan(0)
+		expect(config.projectsDir).toBeTruthy()
+
+		const updateConfigResponse = await fetch(`${baseUrl}/api/config`, {
+			method: 'PUT',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({
+				port: config.port,
+				projectsDir: config.projectsDir,
+			}),
+		})
+		expect(updateConfigResponse.status).toBe(200)
+		const updated = (await updateConfigResponse.json()) as UpdateConfigResponse
+		expect(updated.config).toEqual(config)
+		expect(updated.restartRequired).toBe(false)
+	})
+
+	it('proxies the health API through the UI service', async () => {
+		const baseUrl = requireBaseUrl(process.env.UI_BASE_URL, 'UI_BASE_URL')
+
+		const response = await fetch(`${baseUrl}/api/health`)
+
+		expect(response.status).toBe(200)
+		expect((await response.json()) as HealthResponse).toEqual({
+			status: 'ok',
+		})
 	})
 
 	it('serves the built UI', async () => {

@@ -36,4 +36,31 @@ describe('createMockHarnessApi', () => {
 			'content must not be empty',
 		)
 	})
+
+	it('reports health', async () => {
+		const api = createMockHarnessApi()
+
+		await expect(api.health()).resolves.toBeUndefined()
+	})
+
+	it('reads and updates the mock harness config', async () => {
+		const api = createMockHarnessApi()
+
+		await expect(api.getConfig()).resolves.toEqual({
+			schemaVersion: 1,
+			port: 3000,
+			projectsDir: '~/.openharness/projects',
+		})
+
+		await expect(api.updateConfig({ port: 4000 })).resolves.toEqual({
+			config: {
+				schemaVersion: 1,
+				port: 4000,
+				projectsDir: '~/.openharness/projects',
+			},
+			restartRequired: true,
+		})
+
+		await expect(api.getConfig()).resolves.toMatchObject({ port: 4000 })
+	})
 })

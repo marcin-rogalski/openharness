@@ -7,9 +7,24 @@ import Router from 'find-my-way'
 import type { EndpointInfo } from './types'
 import { ValidationError } from './types'
 
+export interface CorsOptions {
+	allowedOrigins?: string[]
+	allowedMethods?: string[]
+	allowedHeaders?: string[]
+	allowCredentials?: boolean
+}
+
+interface NormalizedCorsOptions {
+	allowedOrigins: string[]
+	allowedMethods: string[]
+	allowedHeaders: string[]
+	allowCredentials: boolean
+}
+
 export interface ServerOptions {
 	port?: number
 	host?: string
+	cors?: boolean | CorsOptions
 	/** Called when a request is not found. */
 	on404?: (method: string, path: string) => { status: number; body: unknown }
 	/** Called when an internal error occurs. */
@@ -50,6 +65,30 @@ function parseQuery(url: string | undefined): Record<string, string> {
 const DEFAULT_PORT = 3000
 const DEFAULT_HOST = '0.0.0.0'
 
+function normalizeCors(
+	options: boolean | CorsOptions | undefined,
+): NormalizedCorsOptions | null {
+	if (!options) {
+		return null
+	}
+
+	const config = options === true ? {} : options
+
+	return {
+		allowedOrigins: config.allowedOrigins ?? ['*'],
+		allowedMethods: config.allowedMethods ?? [
+			'GET',
+			'POST',
+			'PUT',
+			'PATCH',
+			'DELETE',
+			'OPTIONS',
+		],
+		allowedHeaders: config.allowedHeaders ?? ['*'],
+		allowCredentials: config.allowCredentials ?? false,
+	}
+}
+
 export default class Server {
 	private router = Router({
 		ignoreTrailingSlash: true,
@@ -59,6 +98,7 @@ export default class Server {
 	private httpServer: ReturnType<typeof createHttpServer> | null = null
 	private port: number
 	private host: string
+	private cors: NormalizedCorsOptions | null
 	private on404: ServerOptions['on404']
 	private onError: ServerOptions['onError']
 	private _endpoints: EndpointInfo[] = []
@@ -66,6 +106,7 @@ export default class Server {
 	constructor(options: ServerOptions = {}) {
 		this.port = options.port ?? DEFAULT_PORT
 		this.host = options.host ?? DEFAULT_HOST
+		this.cors = normalizeCors(options.cors)
 		this.on404 = options.on404
 		this.onError = options.onError
 	}
@@ -161,6 +202,56 @@ export default class Server {
 	async start(): Promise<number> {
 		this.httpServer = createHttpServer(
 			(req: IncomingMessage, res: ServerResponse) => {
+				if (this.cors) {
+					const origin = req.headers.origin
+					const headers: Record<string, string> = {}
+
+					if (origin) {
+						if (this.cors.allowedOrigins.includes('*')) {
+							headers['Access-Control-Allow-Origin'] = this.cors
+								.allowCredentials
+								? origin
+								: '*'
+						} else if (this.cors.allowedOrigins.includes(origin)) {
+							headers['Access-Control-Allow-Origin'] = origin
+						}
+					}
+
+					if (this.cors.allowCredentials) {
+						headers['Access-Control-Allow-Credentials'] = 'true'
+					}
+
+					if (req.method === 'OPTIONS') {
+						headers['Access-Control-Allow-Methods'] =
+							this.cors.allowedMethods.join(', ')
+
+						const requestedHeaders =
+							req.headers['access-control-request-headers']
+						if (requestedHeaders) {
+							const allowedHeaders = requestedHeaders
+								.split(',')
+								.map((header) => header.trim().toLowerCase())
+								.filter(
+									(header) =>
+										this.cors!.allowedHeaders.includes('*') ||
+										this.cors!.allowedHeaders.includes(header),
+								)
+							if (allowedHeaders.length > 0) {
+								headers['Access-Control-Allow-Headers'] =
+									allowedHeaders.join(', ')
+							}
+						}
+
+						res.writeHead(204, headers)
+						res.end()
+						return
+					}
+
+					for (const [name, value] of Object.entries(headers)) {
+						res.setHeader(name, value)
+					}
+				}
+
 				this.router.lookup(req, res)
 			},
 		)

@@ -14,6 +14,23 @@ describe('createHarnessApiClient', () => {
 		vi.unstubAllGlobals()
 	})
 
+	it('checks harness health', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(jsonResponse(200, { status: 'ok' }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		await expect(api.health()).resolves.toBeUndefined()
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/health',
+			expect.objectContaining({
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+	})
+
 	it('lists projects from the harness API', async () => {
 		const fetchMock = vi.fn().mockResolvedValue(
 			jsonResponse(200, {
@@ -65,6 +82,65 @@ describe('createHarnessApiClient', () => {
 			expect.objectContaining({
 				method: 'POST',
 				body: JSON.stringify({ content: 'Hello' }),
+			}),
+		)
+	})
+
+	it('reads the harness config', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				config: {
+					schemaVersion: 1,
+					port: 3000,
+					projectsDir: '/tmp/projects',
+				},
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		await expect(api.getConfig()).resolves.toEqual({
+			schemaVersion: 1,
+			port: 3000,
+			projectsDir: '/tmp/projects',
+		})
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/config',
+			expect.objectContaining({
+				headers: { 'Content-Type': 'application/json' },
+			}),
+		)
+	})
+
+	it('updates the harness config', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				config: {
+					schemaVersion: 1,
+					port: 4000,
+					projectsDir: '/tmp/projects',
+				},
+				restartRequired: true,
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		await expect(api.updateConfig({ port: 4000 })).resolves.toEqual({
+			config: {
+				schemaVersion: 1,
+				port: 4000,
+				projectsDir: '/tmp/projects',
+			},
+			restartRequired: true,
+		})
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/config',
+			expect.objectContaining({
+				method: 'PUT',
+				body: JSON.stringify({ port: 4000 }),
 			}),
 		)
 	})

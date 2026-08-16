@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url'
 
 const rootDir = fileURLToPath(new URL('../../', import.meta.url))
 const integrationDir = fileURLToPath(new URL('../', import.meta.url))
-const projectsDir = join(homedir(), '.openharness', 'projects')
+const dataDir = join(homedir(), '.openharness')
 
-mkdirSync(projectsDir, { recursive: true })
+mkdirSync(dataDir, { recursive: true })
 
 function run(command, args, options = {}) {
 	const result = spawnSync(command, args, {

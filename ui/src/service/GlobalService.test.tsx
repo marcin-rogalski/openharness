@@ -5,7 +5,7 @@ import { createMockHarnessApi } from './api/MockHarnessApi'
 import { GlobalProvider, useGlobal } from './GlobalService'
 import { emptyState } from './initialState'
 import { mockState } from './mock'
-import type { GlobalState } from './schema'
+import type { GlobalState, Project } from './schema'
 
 function Probe() {
 	const { state, actions } = useGlobal()
@@ -119,8 +119,11 @@ describe('GlobalService', () => {
 
 	it('shows an error when listing projects fails', async () => {
 		const api = {
+			health: vi.fn(),
 			listProjects: vi.fn().mockRejectedValue(new Error('boom')),
 			sendMessage: vi.fn(),
+			getConfig: vi.fn(),
+			updateConfig: vi.fn(),
 		}
 
 		render(
@@ -135,8 +138,11 @@ describe('GlobalService', () => {
 	it('shows an error when sending a message fails', async () => {
 		const user = userEvent.setup()
 		const api = {
+			health: vi.fn(),
 			listProjects: vi.fn().mockResolvedValue(mockState.projects),
 			sendMessage: vi.fn().mockRejectedValue(new Error('send boom')),
+			getConfig: vi.fn(),
+			updateConfig: vi.fn(),
 		}
 		const state: GlobalState = {
 			...mockState,
@@ -153,6 +159,54 @@ describe('GlobalService', () => {
 		await user.click(screen.getByTestId('send-message'))
 
 		expect(await screen.findByTestId('error')).toHaveTextContent('send boom')
+	})
+
+	it('falls back to a generic message for non-Error list failures', async () => {
+		const api = {
+			health: vi.fn(),
+			listProjects: vi.fn().mockRejectedValue('boom'),
+			sendMessage: vi.fn(),
+			getConfig: vi.fn(),
+			updateConfig: vi.fn(),
+		}
+
+		render(
+			<GlobalProvider initialState={emptyState} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		expect(await screen.findByTestId('error')).toHaveTextContent(
+			'Failed to load projects',
+		)
+	})
+
+	it('ignores late project updates after unmount', async () => {
+		let resolveProjects: (() => void) | undefined
+		const api = {
+			health: vi.fn(),
+			listProjects: vi.fn(
+				() =>
+					new Promise<Project[]>((resolve) => {
+						resolveProjects = () => {
+							resolve([{ id: 'late', name: 'Late', status: 'idle' }])
+						}
+					}),
+			),
+			sendMessage: vi.fn(),
+			getConfig: vi.fn(),
+			updateConfig: vi.fn(),
+		}
+
+		const { unmount } = render(
+			<GlobalProvider initialState={emptyState} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		unmount()
+		resolveProjects?.()
+		await Promise.resolve()
 	})
 })
 

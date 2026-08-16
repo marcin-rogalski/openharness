@@ -9,9 +9,9 @@ services:
     environment:
       - NODE_ENV=production
       - HARNESS_PORT=3000
-      - PROJECTS_DIR=/projects
+      - OPENHARNESS_DATA_DIR=/data
     volumes:
-      - ~/.openharness/projects:/projects
+      - ~/.openharness:/data
     restart: unless-stopped
 
   ui:

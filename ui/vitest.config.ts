@@ -23,6 +23,7 @@ export default defineConfig({
 				'src/service/**/*.tsx',
 				'src/components/**/*.tsx',
 				'src/App.tsx',
+				'src/Root.tsx',
 			],
 			exclude: ['src/main.tsx', 'src/test/**', 'src/**/*.d.ts'],
 			thresholds: {

@@ -1,9 +1,12 @@
 import { expect, test } from '@playwright/test'
 
-test('loads projects and sends a message through the harness API', async ({
+test('connects, loads projects, and sends a message through the harness API', async ({
 	page,
 }) => {
 	await page.goto('/')
+
+	await page.getByTestId('harness-base-url').fill('')
+	await page.getByTestId('test-connection').click()
 
 	await expect(page.getByRole('heading', { name: 'OpenHarness' })).toBeVisible()
 	await expect(page.getByTestId('project-name').first()).toHaveText(

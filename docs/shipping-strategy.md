@@ -36,8 +36,10 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 
 - `harness` service runs the built harness.
 - `ui` service serves the built UI and proxies `/api` to the harness.
-- `~/.openharness/projects` is mounted into the harness as `/projects`.
-- environment variables are injected from the host.
+- `~/.openharness` is mounted into the harness as `/data`.
+- `OPENHARNESS_DATA_DIR=/data` tells the harness where its durable state lives.
+- `~/.openharness/config.json` is the harness config source of truth after first boot.
+- environment variables seed the config file only when it does not exist yet.
 - the harness remains the only component with project and agent access.
 - `make check` runs the `integration` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
 
@@ -45,8 +47,9 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 
 - `make watch` runs UI dev mode and harness dev mode.
 - `make start` builds production artifacts and runs them locally.
-- `.env` and `.env.example` define ports and `PROJECTS_DIR`.
-- `PROJECTS_DIR` defaults to `~/.openharness/projects`.
+- `.env` and `.env.example` define ports and `OPENHARNESS_DATA_DIR`.
+- `OPENHARNESS_DATA_DIR` defaults to `~/.openharness`.
+- the harness stores `config.json` and project state under that data directory.
 
 ### Phase 3: optional Tauri desktop shell
 
@@ -55,12 +58,31 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 - the UI talks to the local harness API.
 - this is a convenience wrapper, not the canonical server deployment.
 
+## Configuration
+
+The harness uses a single durable config file:
+
+- local default: `~/.openharness/config.json`
+- Docker default: `/data/config.json`
+- shape: `{ schemaVersion: 1, port: number, projectsDir: string }`
+
+Environment variables are a first-boot seeding mechanism:
+
+- `OPENHARNESS_DATA_DIR` controls where the data directory lives.
+- `HARNESS_PORT` or `PORT` seeds the initial port.
+- `PROJECTS_DIR` seeds the initial projects directory.
+
+Once `config.json` exists, the file wins. The UI can read and update the harness config through `GET /api/config` and `PUT /api/config`. Port changes report `restartRequired: true`.
+
+The UI stores its own client config in `localStorage`. An empty `harnessBaseUrl` means the UI talks to the same-origin `/api` proxy.
+
 ## Parity Rule
 
 Dev mode and production mode must use the same:
 
 - source packages;
 - environment variable names;
+- data directory and config file resolution;
 - project directory resolution;
 - API contracts;
 - test expectations.
