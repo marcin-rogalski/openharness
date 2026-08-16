@@ -1,23 +1,18 @@
 {
 	"compilerOptions": {
 		"target": "ES2022",
-		"lib": ["ES2022", "DOM"],
 		"module": "ESNext",
 		"moduleResolution": "bundler",
+		"lib": ["ES2022", "DOM"],
 		"strict": true,
 		"noEmit": true,
-		"isolatedModules": true,
-		"verbatimModuleSyntax": true,
-		"skipLibCheck": true,
 		"esModuleInterop": true,
+		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"types": ["node"]
+		"isolatedModules": true,
+		"verbatimModuleSyntax": true
 	},
-	"include": [
-		"tests/**/*.ts",
-		"e2e/**/*.ts",
-		"playwright.config.ts",
-		"vitest.compose.config.ts"
-	]
+	"include": ["src/**/*.ts"],
+	"exclude": ["node_modules", "dist", "coverage"]
 }

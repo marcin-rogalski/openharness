@@ -11,6 +11,24 @@ ln -s CLAUDE.md AGENTS.md
 
 ## Coding Rules
 
+### Style
+
+- **Prefer classes over loose functions.** When related behavior needs a home, encapsulate it in a class instead of exporting standalone factory or helper functions.
+
+### Context Compaction
+
+- When compacting context, keep the current work detailed and degrade older, less relevant work to brief status.
+- Keep unrelated history minimal.
+- State the starting point, what was being done, and what to do next.
+- Briefly describe the project and enough structure for the model to navigate without overcomplicating the summary.
+
+### Context & File Pointers
+
+- **Point to key files only.** When giving the model context, reference only entrypoints for further search or files that need direct changes — not every related file.
+- **Prefer folders over files.** When a folder is a sufficient pointer, point to the folder instead of listing its files.
+- **Assume the model can search.** The model knows how to search and explore the project; do not pre-dump the whole codebase.
+- **Less is more.** Too much context makes the work harder, not easier — keep pointers minimal and let the model find the rest.
+
 ### Architecture
 
 - **Strict split between UI and backend.** UI is served via web browser; backend exposes only API and MCP server — no UI.

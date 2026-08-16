@@ -31,7 +31,7 @@ logs:
 	docker compose logs -f
 
 test:
-	npm run coverage -w @openharness/tempo -w harness -w @openharness/ui
+	npm run coverage -w @openharness/tempo -w @openharness/fetch -w @openharness/contracts -w harness -w @openharness/ui
 
 check:
 	npm run check -w @openharness/tests

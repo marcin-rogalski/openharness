@@ -4,10 +4,14 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 COPY libs/tempo/package.json ./libs/tempo/
+COPY libs/contracts/package.json ./libs/contracts/
+COPY libs/fetch/package.json ./libs/fetch/
 COPY harness/package.json ./harness/
 RUN npm ci
 
 COPY libs/tempo ./libs/tempo
+COPY libs/contracts ./libs/contracts
+COPY libs/fetch ./libs/fetch
 COPY harness ./harness
 
 RUN npm run build -w harness

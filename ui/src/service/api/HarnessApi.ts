@@ -1,20 +1,16 @@
+import type {
+	ConfigSchema,
+	UpdateConfigBodySchema,
+	UpdateConfigResponseSchema,
+} from '@openharness/contracts'
+import type { z } from 'zod'
 import type { Project, TimelineEntry } from '../schema'
 
-export interface HarnessConfig {
-	schemaVersion: 1
-	port: number
-	projectsDir: string
-}
+export type HarnessConfig = z.infer<typeof ConfigSchema>
 
-export interface UpdateConfigInput {
-	port?: number
-	projectsDir?: string
-}
+export type UpdateConfigInput = z.input<typeof UpdateConfigBodySchema>
 
-export interface UpdateConfigResult {
-	config: HarnessConfig
-	restartRequired: boolean
-}
+export type UpdateConfigResult = z.infer<typeof UpdateConfigResponseSchema>
 
 export interface HarnessApi {
 	health(): Promise<void>

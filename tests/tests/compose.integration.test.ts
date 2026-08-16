@@ -1,37 +1,6 @@
+import { harnessApiSchema } from '@openharness/contracts'
+import { FetchClient } from '@openharness/fetch'
 import { describe, expect, it } from 'vitest'
-
-interface Project {
-	id: string
-	name: string
-	status: string
-}
-
-interface ListProjectsResponse {
-	projects: Project[]
-}
-
-interface SendMessageResponse {
-	entries: Array<{ type: string }>
-}
-
-interface HealthResponse {
-	status: 'ok'
-}
-
-interface HarnessConfig {
-	schemaVersion: 1
-	port: number
-	projectsDir: string
-}
-
-interface GetConfigResponse {
-	config: HarnessConfig
-}
-
-interface UpdateConfigResponse {
-	config: HarnessConfig
-	restartRequired: boolean
-}
 
 function requireBaseUrl(value: string | undefined, name: string): string {
 	if (!value) {
@@ -46,11 +15,10 @@ describe('Docker Compose integration', () => {
 			process.env.HARNESS_BASE_URL,
 			'HARNESS_BASE_URL',
 		)
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/projects`)
+		const body = await client.request('listProjects')
 
-		expect(response.status).toBe(200)
-		const body = (await response.json()) as ListProjectsResponse
 		expect(body.projects).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
@@ -67,15 +35,13 @@ describe('Docker Compose integration', () => {
 			process.env.HARNESS_BASE_URL,
 			'HARNESS_BASE_URL',
 		)
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/projects/project-1/messages`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ content: 'integration check' }),
+		const body = await client.request('sendMessage', {
+			params: { projectId: 'project-1' },
+			body: { content: 'integration check' },
 		})
 
-		expect(response.status).toBe(200)
-		const body = (await response.json()) as SendMessageResponse
 		expect(body.entries.map((entry) => entry.type)).toEqual(
 			expect.arrayContaining(['user_message', 'agent_response']),
 		)
@@ -83,11 +49,10 @@ describe('Docker Compose integration', () => {
 
 	it('proxies the project API through the UI service', async () => {
 		const baseUrl = requireBaseUrl(process.env.UI_BASE_URL, 'UI_BASE_URL')
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/projects`)
+		const body = await client.request('listProjects')
 
-		expect(response.status).toBe(200)
-		const body = (await response.json()) as ListProjectsResponse
 		expect(body.projects).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({ name: 'OpenHarness' }),
@@ -97,15 +62,13 @@ describe('Docker Compose integration', () => {
 
 	it('sends a message through the UI proxy', async () => {
 		const baseUrl = requireBaseUrl(process.env.UI_BASE_URL, 'UI_BASE_URL')
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/projects/project-1/messages`, {
-			method: 'POST',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({ content: 'ui proxy check' }),
+		const body = await client.request('sendMessage', {
+			params: { projectId: 'project-1' },
+			body: { content: 'ui proxy check' },
 		})
 
-		expect(response.status).toBe(200)
-		const body = (await response.json()) as SendMessageResponse
 		expect(body.entries.map((entry) => entry.type)).toEqual(
 			expect.arrayContaining(['user_message', 'agent_response']),
 		)
@@ -116,11 +79,9 @@ describe('Docker Compose integration', () => {
 			process.env.HARNESS_BASE_URL,
 			'HARNESS_BASE_URL',
 		)
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/health`)
-
-		expect(response.status).toBe(200)
-		expect((await response.json()) as HealthResponse).toEqual({
+		await expect(client.request('health')).resolves.toEqual({
 			status: 'ok',
 		})
 	})
@@ -130,35 +91,28 @@ describe('Docker Compose integration', () => {
 			process.env.HARNESS_BASE_URL,
 			'HARNESS_BASE_URL',
 		)
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const getConfigResponse = await fetch(`${baseUrl}/api/config`)
-		expect(getConfigResponse.status).toBe(200)
-		const { config } = (await getConfigResponse.json()) as GetConfigResponse
+		const { config } = await client.request('getConfig')
 		expect(config.schemaVersion).toBe(1)
 		expect(config.port).toBeGreaterThan(0)
 		expect(config.projectsDir).toBeTruthy()
 
-		const updateConfigResponse = await fetch(`${baseUrl}/api/config`, {
-			method: 'PUT',
-			headers: { 'content-type': 'application/json' },
-			body: JSON.stringify({
+		const updated = await client.request('updateConfig', {
+			body: {
 				port: config.port,
 				projectsDir: config.projectsDir,
-			}),
+			},
 		})
-		expect(updateConfigResponse.status).toBe(200)
-		const updated = (await updateConfigResponse.json()) as UpdateConfigResponse
 		expect(updated.config).toEqual(config)
 		expect(updated.restartRequired).toBe(false)
 	})
 
 	it('proxies the health API through the UI service', async () => {
 		const baseUrl = requireBaseUrl(process.env.UI_BASE_URL, 'UI_BASE_URL')
+		const client = new FetchClient(harnessApiSchema, { baseUrl })
 
-		const response = await fetch(`${baseUrl}/api/health`)
-
-		expect(response.status).toBe(200)
-		expect((await response.json()) as HealthResponse).toEqual({
+		await expect(client.request('health')).resolves.toEqual({
 			status: 'ok',
 		})
 	})

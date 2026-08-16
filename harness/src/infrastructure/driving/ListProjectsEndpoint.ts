@@ -1,23 +1,23 @@
+import { listProjectsEndpoint } from '@openharness/contracts'
 import type { EndpointHandler } from '@openharness/tempo'
 import { Endpoint } from '@openharness/tempo'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
-import { ListProjectsResponseDto } from '@/infrastructure/dtos/ListProjectsDto'
 
 type Schemas = {
-	response: typeof ListProjectsResponseDto
+	response: (typeof listProjectsEndpoint)['response']
 }
 
 export default class ListProjectsEndpoint extends Endpoint<
-	'/api/projects',
+	(typeof listProjectsEndpoint)['path'],
 	Schemas,
 	EndpointHandler<Schemas>
 > {
 	constructor(private readonly usecase: ListProjectsUseCasePort) {
 		super(
-			'GET',
-			'/api/projects',
+			listProjectsEndpoint.method,
+			listProjectsEndpoint.path,
 			{
-				response: ListProjectsResponseDto,
+				response: listProjectsEndpoint.response,
 			},
 			async () => this.usecase.handle(),
 		)

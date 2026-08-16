@@ -1,28 +1,25 @@
+import { updateConfigEndpoint } from '@openharness/contracts'
 import type { EndpointHandler } from '@openharness/tempo'
 import { Endpoint } from '@openharness/tempo'
 import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
-import {
-	UpdateConfigBodyDto,
-	UpdateConfigResponseDto,
-} from '@/infrastructure/dtos/ConfigDto'
 
 type Schemas = {
-	body: typeof UpdateConfigBodyDto
-	response: typeof UpdateConfigResponseDto
+	body: (typeof updateConfigEndpoint)['body']
+	response: (typeof updateConfigEndpoint)['response']
 }
 
 export default class UpdateConfigEndpoint extends Endpoint<
-	'/api/config',
+	(typeof updateConfigEndpoint)['path'],
 	Schemas,
 	EndpointHandler<Schemas>
 > {
 	constructor(private readonly usecase: UpdateConfigUseCasePort) {
 		super(
-			'PUT',
-			'/api/config',
+			updateConfigEndpoint.method,
+			updateConfigEndpoint.path,
 			{
-				body: UpdateConfigBodyDto,
-				response: UpdateConfigResponseDto,
+				body: updateConfigEndpoint.body,
+				response: updateConfigEndpoint.response,
 			},
 			async (input) => this.usecase.handle(input),
 		)

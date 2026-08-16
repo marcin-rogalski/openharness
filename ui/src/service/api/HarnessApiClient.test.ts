@@ -6,7 +6,7 @@ function jsonResponse(status: number, body: unknown) {
 		ok: status >= 200 && status < 300,
 		status,
 		json: async () => body,
-	} as Response
+	} as unknown as Response
 }
 
 describe('createHarnessApiClient', () => {

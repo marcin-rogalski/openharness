@@ -1,23 +1,23 @@
+import { getConfigEndpoint } from '@openharness/contracts'
 import type { EndpointHandler } from '@openharness/tempo'
 import { Endpoint } from '@openharness/tempo'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
-import { GetConfigResponseDto } from '@/infrastructure/dtos/ConfigDto'
 
 type Schemas = {
-	response: typeof GetConfigResponseDto
+	response: (typeof getConfigEndpoint)['response']
 }
 
 export default class GetConfigEndpoint extends Endpoint<
-	'/api/config',
+	(typeof getConfigEndpoint)['path'],
 	Schemas,
 	EndpointHandler<Schemas>
 > {
 	constructor(private readonly usecase: GetConfigUseCasePort) {
 		super(
-			'GET',
-			'/api/config',
+			getConfigEndpoint.method,
+			getConfigEndpoint.path,
 			{
-				response: GetConfigResponseDto,
+				response: getConfigEndpoint.response,
 			},
 			async () => this.usecase.handle(),
 		)

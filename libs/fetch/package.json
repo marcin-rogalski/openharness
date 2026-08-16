@@ -1,21 +1,18 @@
 {
-	"name": "harness",
+	"name": "@openharness/fetch",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
+	"exports": {
+		".": "./src/index.ts"
+	},
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
 		"test": "vitest",
 		"test:run": "vitest run",
+		"typecheck": "tsc --noEmit",
 		"coverage": "vitest run --coverage",
 		"lint": "biome check .",
-		"lint:fix": "biome check --fix .",
-		"format": "biome format --write ."
-	},
-	"dependencies": {
-		"@openharness/contracts": "0.1.0",
-		"@openharness/tempo": "0.1.0"
+		"lint:fix": "biome check --fix ."
 	},
 	"devDependencies": {
 		"zod": "^4.4.3"

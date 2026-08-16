@@ -1,22 +1,22 @@
+import { healthEndpoint } from '@openharness/contracts'
 import type { EndpointHandler } from '@openharness/tempo'
 import { Endpoint } from '@openharness/tempo'
-import { HealthDto } from '@/infrastructure/dtos/ConfigDto'
 
 type Schemas = {
-	response: typeof HealthDto
+	response: (typeof healthEndpoint)['response']
 }
 
 export default class HealthEndpoint extends Endpoint<
-	'/api/health',
+	(typeof healthEndpoint)['path'],
 	Schemas,
 	EndpointHandler<Schemas>
 > {
 	constructor() {
 		super(
-			'GET',
-			'/api/health',
+			healthEndpoint.method,
+			healthEndpoint.path,
 			{
-				response: HealthDto,
+				response: healthEndpoint.response,
 			},
 			async () => ({ status: 'ok' }),
 		)

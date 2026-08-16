@@ -1,8 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { ConfigSchema } from '@openharness/contracts'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { HarnessConfig } from '@/domain/Config'
-import { ConfigDto } from '@/infrastructure/dtos/ConfigDto'
 
 export default class JsonConfigRepositoryAdapter
 	implements ConfigRepositoryPort
@@ -22,7 +22,7 @@ export default class JsonConfigRepositoryAdapter
 		}
 
 		try {
-			return ConfigDto.parse(JSON.parse(raw))
+			return ConfigSchema.parse(JSON.parse(raw))
 		} catch (error) {
 			throw new Error(
 				`Invalid harness config at ${this.configPath}: ${

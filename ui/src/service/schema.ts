@@ -1,40 +1,7 @@
+import { ProjectSchema, TimelineEntrySchema } from '@openharness/contracts'
 import { z } from 'zod'
 
-export const ProjectSchema = z.object({
-	id: z.string(),
-	name: z.string(),
-	status: z.enum(['idle', 'running', 'failed']),
-})
-
-export const TimelineEntrySchema = z.discriminatedUnion('type', [
-	z.object({
-		type: z.literal('user_message'),
-		id: z.string(),
-		projectId: z.string(),
-		content: z.string(),
-	}),
-	z.object({
-		type: z.literal('agent_thinking'),
-		id: z.string(),
-		projectId: z.string(),
-		text: z.string(),
-	}),
-	z.object({
-		type: z.literal('agent_tool_call'),
-		id: z.string(),
-		projectId: z.string(),
-		tool: z.string(),
-		status: z.enum(['started', 'completed']),
-		input: z.string().optional(),
-		output: z.string().optional(),
-	}),
-	z.object({
-		type: z.literal('agent_response'),
-		id: z.string(),
-		projectId: z.string(),
-		text: z.string(),
-	}),
-])
+export { ProjectSchema, TimelineEntrySchema }
 
 export const GlobalStateSchema = z
 	.object({

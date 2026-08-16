@@ -1,31 +1,27 @@
+import { sendMessageEndpoint } from '@openharness/contracts'
 import type { EndpointHandler } from '@openharness/tempo'
 import { Endpoint } from '@openharness/tempo'
 import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
-import {
-	SendMessageBodyDto,
-	SendMessageParamsDto,
-	SendMessageResponseDto,
-} from '@/infrastructure/dtos/SendMessageDto'
 
 type Schemas = {
-	params: typeof SendMessageParamsDto
-	body: typeof SendMessageBodyDto
-	response: typeof SendMessageResponseDto
+	params: (typeof sendMessageEndpoint)['params']
+	body: (typeof sendMessageEndpoint)['body']
+	response: (typeof sendMessageEndpoint)['response']
 }
 
 export default class SendProjectMessageEndpoint extends Endpoint<
-	'/api/projects/:projectId/messages',
+	(typeof sendMessageEndpoint)['path'],
 	Schemas,
 	EndpointHandler<Schemas>
 > {
 	constructor(private readonly usecase: SendProjectMessageUseCasePort) {
 		super(
-			'POST',
-			'/api/projects/:projectId/messages',
+			sendMessageEndpoint.method,
+			sendMessageEndpoint.path,
 			{
-				params: SendMessageParamsDto,
-				body: SendMessageBodyDto,
-				response: SendMessageResponseDto,
+				params: sendMessageEndpoint.params,
+				body: sendMessageEndpoint.body,
+				response: sendMessageEndpoint.response,
 			},
 			async (input) => this.usecase.handle(input),
 		)
