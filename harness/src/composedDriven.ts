@@ -3,7 +3,9 @@
 
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { Project } from '@/domain/Project'
+import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
+import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySessionRepositoryAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 
 const defaultProjects: Project[] = [
@@ -16,6 +18,8 @@ export default async function composeDriven(
 ) {
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),
+		sessionRepository: new InMemorySessionRepositoryAdapter(),
+		eventLog: new InMemoryEventLogAdapter(),
 		agentRuntime: new MockAgentRuntimeAdapter(),
 		configRepository,
 	}

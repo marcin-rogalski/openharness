@@ -5,9 +5,11 @@ import { sendMessageEndpoint } from './messages'
 import { listProjectsEndpoint } from './projects'
 
 export * from './config'
+export * from './events'
 export * from './health'
 export * from './messages'
 export * from './projects'
+export * from './sessions'
 
 export const harnessApiSchema = {
 	health: healthEndpoint,

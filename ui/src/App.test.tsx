@@ -53,13 +53,14 @@ describe('App', () => {
 			{
 				projects: [],
 				selectedProjectId: null,
+				sessionId: null,
 				timeline: [],
 				error: null,
 			},
 			{
 				health: async () => {},
 				listProjects: async () => [],
-				sendMessage: async () => [],
+				sendMessage: async () => ({ sessionId: 's', events: [] }),
 				getConfig: async () => ({
 					schemaVersion: 1,
 					port: 3000,

@@ -12,6 +12,9 @@ import {
 	SendMessageParamsSchema,
 	SendMessageResponseSchema,
 	sendMessageEndpoint,
+	SessionEventSchema,
+	SessionSchema,
+	SessionSummarySchema,
 	TimelineEntrySchema,
 	UpdateConfigBodySchema,
 	UpdateConfigResponseSchema,
@@ -120,14 +123,21 @@ describe('messages', () => {
 		expect(() => SendMessageBodySchema.parse({ content: '   ' })).toThrow()
 	})
 
-	it('parses a send message response', () => {
+	it('parses a send message response with session and events', () => {
 		const payload = {
-			entries: [
+			sessionId: 'session-1',
+			events: [
 				{
-					type: 'agent_response',
 					id: 'e1',
+					sessionId: 'session-1',
 					projectId: 'p1',
-					text: 'done',
+					turnId: null,
+					stepId: null,
+					timestamp: '2026-01-01T00:00:00Z',
+					actor: 'user',
+					type: 'user_message',
+					payload: { content: 'hi' },
+					visibility: 'both',
 				},
 			],
 		}
@@ -173,6 +183,96 @@ describe('config', () => {
 			method: 'PUT',
 			path: '/api/config',
 		})
+	})
+})
+
+describe('sessions', () => {
+	it('parses a valid session', () => {
+		const session = {
+			id: 'session-1',
+			projectId: 'project-1',
+			status: 'active',
+			createdAt: '2026-01-01T00:00:00Z',
+			endedAt: null,
+		}
+		expect(SessionSchema.parse(session)).toEqual(session)
+	})
+
+	it('rejects an unknown session status', () => {
+		expect(() =>
+			SessionSchema.parse({
+				id: 's',
+				projectId: 'p',
+				status: 'bogus',
+				createdAt: '2026-01-01T00:00:00Z',
+				endedAt: null,
+			}),
+		).toThrow()
+	})
+
+	it('parses a valid session summary', () => {
+		const summary = {
+			id: 'session-1',
+			projectId: 'project-1',
+			status: 'active',
+			createdAt: '2026-01-01T00:00:00Z',
+			endedAt: null,
+			eventCount: 5,
+			lastEventAt: '2026-01-01T01:00:00Z',
+		}
+		expect(SessionSummarySchema.parse(summary)).toEqual(summary)
+	})
+})
+
+describe('events', () => {
+	it('parses a valid session event', () => {
+		const event = {
+			id: 'e1',
+			sessionId: 'session-1',
+			projectId: 'project-1',
+			turnId: null,
+			stepId: null,
+			timestamp: '2026-01-01T00:00:00Z',
+			actor: 'user',
+			type: 'user_message',
+			payload: { content: 'hi' },
+			visibility: 'both',
+		}
+		expect(SessionEventSchema.parse(event)).toEqual(event)
+	})
+
+	it('rejects an unknown event type', () => {
+		expect(() =>
+			SessionEventSchema.parse({
+				id: 'e',
+				sessionId: 's',
+				projectId: 'p',
+				turnId: null,
+				stepId: null,
+				timestamp: '2026-01-01T00:00:00Z',
+				actor: 'user',
+				type: 'bogus',
+				payload: {},
+				visibility: 'both',
+			}),
+		).toThrow()
+	})
+
+	it('rejects an unknown actor', () => {
+		expect(() =>
+			SessionEventSchema.parse({
+				id: 'e',
+				sessionId: 's',
+				projectId: 'p',
+				turnId: null,
+				stepId: null,
+				timestamp: '2026-01-01T00:00:00Z',
+				actor: 'bogus',
+				type: 'user_message',
+				payload: {},
+				visibility: 'both',
+			}),
+		).toThrow()
 	})
 })
 

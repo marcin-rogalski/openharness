@@ -1,40 +1,25 @@
-import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntimePort'
-import type { AgentTimelineEntry } from '@/domain/AgentTimelineEntry'
+import type {
+	AgentRuntimePort,
+	AgentRuntimeRequest,
+	AgentRuntimeResponse,
+} from '@/application/ports/adapters/AgentRuntimePort'
 
 export default class MockAgentRuntimeAdapter implements AgentRuntimePort {
-	async handle(request: {
-		projectId: string
-		content: string
-	}): Promise<AgentTimelineEntry[]> {
-		return [
-			{
-				type: 'agent_thinking',
-				id: crypto.randomUUID(),
-				projectId: request.projectId,
-				text: `Thinking about: ${request.content}`,
-			},
-			{
-				type: 'agent_tool_call',
-				id: crypto.randomUUID(),
-				projectId: request.projectId,
-				tool: 'mock_tool',
-				status: 'started',
-				input: request.content,
-			},
-			{
-				type: 'agent_tool_call',
-				id: crypto.randomUUID(),
-				projectId: request.projectId,
-				tool: 'mock_tool',
-				status: 'completed',
-				output: 'ok',
-			},
-			{
-				type: 'agent_response',
-				id: crypto.randomUUID(),
-				projectId: request.projectId,
-				text: `Mock response to: ${request.content}`,
-			},
-		]
+	async handle(request: AgentRuntimeRequest): Promise<AgentRuntimeResponse> {
+		const lastMessage = request.context[request.context.length - 1]
+		const content =
+			lastMessage?.role === 'user' ? lastMessage.content : ''
+
+		return {
+			thinking: `Thinking about: ${content}`,
+			toolCalls: [
+				{
+					tool: 'mock_tool',
+					input: content,
+					output: 'ok',
+				},
+			],
+			response: `Mock response to: ${content}`,
+		}
 	}
 }

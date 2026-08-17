@@ -11,21 +11,19 @@ describe('createMockHarnessApi', () => {
 		])
 	})
 
-	it('returns a user entry followed by mock agent entries', async () => {
+	it('returns a session id and events for the message', async () => {
 		const api = createMockHarnessApi()
 
-		const entries = await api.sendMessage('project-1', '  Hello  ')
+		const result = await api.sendMessage('project-1', '  Hello  ')
 
-		expect(entries.map((entry) => entry.type)).toEqual([
+		expect(result.sessionId).toBeTypeOf('string')
+		expect(result.events.map((event) => event.type)).toEqual([
 			'user_message',
-			'agent_thinking',
-			'agent_tool_call',
-			'agent_tool_call',
-			'agent_response',
+			'model_output_received',
 		])
-		expect(entries[0]).toMatchObject({
+		expect(result.events[0]).toMatchObject({
 			projectId: 'project-1',
-			content: 'Hello',
+			payload: { content: 'Hello' },
 		})
 	})
 

@@ -51,12 +51,11 @@ describe('composeUsecases', () => {
 			content: 'Hello',
 		})
 
-		expect(result.entries.map((entry) => entry.type)).toEqual([
+		expect(result.sessionId).toBeTypeOf('string')
+		expect(result.events.map((entry) => entry.type)).toEqual([
+			'session_created',
 			'user_message',
-			'agent_thinking',
-			'agent_tool_call',
-			'agent_tool_call',
-			'agent_response',
+			'model_output_received',
 		])
 	})
 

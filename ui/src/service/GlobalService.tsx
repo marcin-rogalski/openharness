@@ -7,6 +7,7 @@ import {
 	useReducer,
 } from 'react'
 import type { HarnessApi } from './api/HarnessApi'
+import { projectEventsToTimeline } from './projectEvents'
 import { globalReducer } from './reducer'
 import { type GlobalState, GlobalStateSchema, type Project } from './schema'
 
@@ -81,7 +82,12 @@ export function GlobalProvider({
 					}
 
 					try {
-						const entries = await api.sendMessage(projectId, trimmed)
+						const { sessionId, events } = await api.sendMessage(
+							projectId,
+							trimmed,
+						)
+						dispatch({ type: 'session/set', sessionId })
+						const entries = projectEventsToTimeline(events)
 						for (const entry of entries) {
 							dispatch({ type: 'timeline/append', entry })
 						}

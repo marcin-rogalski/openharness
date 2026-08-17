@@ -6,6 +6,7 @@ export const mockState: GlobalState = {
 		{ id: 'project-2', name: 'Tempo', status: 'idle' },
 	],
 	selectedProjectId: null,
+	sessionId: null,
 	timeline: [],
 	error: null,
 }

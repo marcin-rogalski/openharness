@@ -1,5 +1,6 @@
 import type { EndpointSchema } from '@openharness/fetch'
 import { z } from 'zod'
+import { SessionEventSchema } from './events'
 
 export const TimelineEntrySchema = z.discriminatedUnion('type', [
 	z.object({
@@ -42,7 +43,8 @@ export const SendMessageBodySchema = z.object({
 })
 
 export const SendMessageResponseSchema = z.object({
-	entries: z.array(TimelineEntrySchema),
+	sessionId: z.string(),
+	events: z.array(SessionEventSchema),
 })
 
 export const sendMessageEndpoint = {

@@ -27,8 +27,8 @@ Docker Compose is the right first step because:
 
 A local composer is still useful later because:
 
-- `make watch` can run the real dev loop without Docker.
-- `make start` can run the production build artifacts locally.
+- a dev script can run the real dev loop without Docker.
+- a start script can run the production build artifacts locally.
 - tests, dev mode, and production mode can share the same source and environment model.
 - Docker is not required just to inspect local behavior.
 
@@ -45,12 +45,12 @@ Tauri is useful later if users want a local desktop app. It can wrap the UI and 
 - `~/.openharness/config.json` is the harness config source of truth after first boot.
 - environment variables seed the config file only when it does not exist yet.
 - the harness remains the only component with project and agent access.
-- `make check` runs the `tests` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
+- `npm run check` runs the `tests` package: Vitest compose integration tests plus Playwright browser E2E tests against the built Compose services.
 
 ### Phase 2: local composer
 
-- `make watch` runs UI dev mode and harness dev mode.
-- `make start` builds production artifacts and runs them locally.
+- a dev script runs UI dev mode and harness dev mode.
+- a start script builds production artifacts and runs them locally.
 - `.env` and `.env.example` define ports and `OPENHARNESS_DATA_DIR`.
 - `OPENHARNESS_DATA_DIR` defaults to `~/.openharness`.
 - the harness stores `config.json` and project state under that data directory.
@@ -91,4 +91,4 @@ Dev mode and production mode must use the same:
 - API contracts;
 - test expectations.
 
-`make watch` may use source watchers, but `make start` must run built artifacts. `make check` starts the built harness and built UI through Docker Compose, then runs Vitest API/proxy integration tests and Playwright browser E2E tests that verify the same user-visible behavior covered by unit tests.
+The dev script may use source watchers, but the start script must run built artifacts. `npm run check` starts the built harness and built UI through Docker Compose, then runs Vitest API/proxy integration tests and Playwright browser E2E tests that verify the same user-visible behavior covered by unit tests.

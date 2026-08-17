@@ -15,7 +15,7 @@ describe('SendProjectMessageEndpoint', () => {
 
 	it('validates input and calls the usecase', async () => {
 		const usecase = {
-			handle: vi.fn().mockResolvedValue({ entries: [] }),
+			handle: vi.fn().mockResolvedValue({ sessionId: 'session-1', events: [] }),
 		} as SendProjectMessageUseCasePort
 		const endpoint = new SendProjectMessageEndpoint(usecase)
 		const handler = endpoint.createHandler()
@@ -31,7 +31,7 @@ describe('SendProjectMessageEndpoint', () => {
 			projectId: 'project-1',
 			content: 'Hello',
 		})
-		expect(output).toEqual({ entries: [] })
+		expect(output).toEqual({ sessionId: 'session-1', events: [] })
 	})
 
 	it('rejects an empty message body', async () => {

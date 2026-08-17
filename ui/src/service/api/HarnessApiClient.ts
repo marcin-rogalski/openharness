@@ -18,7 +18,7 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 				params: { projectId },
 				body: { content },
 			})
-			return payload.entries
+			return { sessionId: payload.sessionId, events: payload.events }
 		},
 		async getConfig() {
 			const payload = await client.request('getConfig')

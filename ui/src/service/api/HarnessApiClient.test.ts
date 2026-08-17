@@ -55,12 +55,19 @@ describe('createHarnessApiClient', () => {
 	it('sends a message to the selected project', async () => {
 		const fetchMock = vi.fn().mockResolvedValue(
 			jsonResponse(200, {
-				entries: [
+				sessionId: 'session-1',
+				events: [
 					{
-						type: 'user_message',
-						id: 'entry-1',
+						id: 'event-1',
+						sessionId: 'session-1',
 						projectId: 'project 1',
-						content: 'Hello',
+						turnId: null,
+						stepId: null,
+						timestamp: '2025-01-01T00:00:00.000Z',
+						actor: 'user',
+						type: 'user_message',
+						payload: { content: 'Hello' },
+						visibility: 'both',
 					},
 				],
 			}),
@@ -68,14 +75,14 @@ describe('createHarnessApiClient', () => {
 		vi.stubGlobal('fetch', fetchMock)
 		const api = createHarnessApiClient()
 
-		await expect(api.sendMessage('project 1', 'Hello')).resolves.toEqual([
-			{
-				type: 'user_message',
-				id: 'entry-1',
-				projectId: 'project 1',
-				content: 'Hello',
-			},
-		])
+		const result = await api.sendMessage('project 1', 'Hello')
+
+		expect(result.sessionId).toBe('session-1')
+		expect(result.events).toHaveLength(1)
+		expect(result.events[0]).toMatchObject({
+			type: 'user_message',
+			payload: { content: 'Hello' },
+		})
 
 		expect(fetchMock).toHaveBeenCalledWith(
 			'/api/projects/project%201/messages',

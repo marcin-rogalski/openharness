@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { AgentTimelineEntry } from '@/domain/AgentTimelineEntry'
+import type { SessionEvent } from '@/domain/SessionEvent'
 
 export const SendProjectMessageInputSchema = z.object({
 	projectId: z.string().min(1),
@@ -13,7 +13,8 @@ export type SendProjectMessageInput = z.infer<
 >
 
 export interface SendProjectMessageOutput {
-	entries: AgentTimelineEntry[]
+	sessionId: string
+	events: SessionEvent[]
 }
 
 export interface SendProjectMessageUseCasePort {

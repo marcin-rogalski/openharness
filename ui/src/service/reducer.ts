@@ -34,11 +34,17 @@ export function globalReducer(
 			return {
 				...state,
 				selectedProjectId: action.projectId,
+				sessionId: null,
 			}
 		case 'timeline/append':
 			return {
 				...state,
 				timeline: [...state.timeline, action.entry],
+			}
+		case 'session/set':
+			return {
+				...state,
+				sessionId: action.sessionId,
 			}
 		case 'error/set':
 			return {

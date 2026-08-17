@@ -1,5 +1,5 @@
 import { mockState } from '../mock'
-import { createMockTimelineEntries } from '../mockTimeline'
+import type { SessionEvent } from '../schema'
 import type { HarnessApi, HarnessConfig, UpdateConfigInput } from './HarnessApi'
 
 export function createMockHarnessApi(): HarnessApi {
@@ -8,6 +8,7 @@ export function createMockHarnessApi(): HarnessApi {
 		port: 3000,
 		projectsDir: '~/.openharness/projects',
 	}
+	let sessionId: string | null = null
 
 	return {
 		async health() {
@@ -22,15 +23,43 @@ export function createMockHarnessApi(): HarnessApi {
 				throw new Error('content must not be empty')
 			}
 
-			return [
+			if (!sessionId) {
+				sessionId = crypto.randomUUID()
+			}
+
+			const now = new Date().toISOString()
+			const events: SessionEvent[] = [
 				{
-					type: 'user_message',
 					id: crypto.randomUUID(),
+					sessionId: sessionId,
 					projectId,
-					content: trimmed,
+					turnId: null,
+					stepId: null,
+					timestamp: now,
+					actor: 'user',
+					type: 'user_message',
+					payload: { content: trimmed },
+					visibility: 'both',
 				},
-				...createMockTimelineEntries(projectId, trimmed),
+				{
+					id: crypto.randomUUID(),
+					sessionId: sessionId,
+					projectId,
+					turnId: null,
+					stepId: null,
+					timestamp: now,
+					actor: 'agent',
+					type: 'model_output_received',
+					payload: {
+						thinking: `Thinking about: ${trimmed}`,
+						toolCalls: [{ tool: 'mock_tool', input: trimmed, output: 'ok' }],
+						response: `Mock response to: ${trimmed}`,
+					},
+					visibility: 'both',
+				},
 			]
+
+			return { sessionId: sessionId, events }
 		},
 		async getConfig() {
 			return config

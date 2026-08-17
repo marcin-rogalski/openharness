@@ -23,6 +23,8 @@ export default function composeUsecases(driven: Driven): {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
 		sendProjectMessage: new SendProjectMessageUsecase(
 			driven.projectRepository,
+			driven.sessionRepository,
+			driven.eventLog,
 			driven.agentRuntime,
 		),
 		getConfig: new GetConfigUsecase(driven.configRepository),
