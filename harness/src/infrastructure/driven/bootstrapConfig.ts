@@ -71,6 +71,8 @@ export function createDefaultConfig(
 			cwd,
 			homeDir,
 		),
+		openaiModel: 'gpt-4o-mini',
+		openaiBaseUrl: null,
 	}
 }
 

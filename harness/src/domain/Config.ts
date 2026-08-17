@@ -4,4 +4,6 @@ export interface HarnessConfig {
 	schemaVersion: typeof CONFIG_SCHEMA_VERSION
 	port: number
 	projectsDir: string
+	openaiModel: string
+	openaiBaseUrl: string | null
 }

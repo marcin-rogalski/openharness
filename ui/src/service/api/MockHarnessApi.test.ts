@@ -48,6 +48,8 @@ describe('createMockHarnessApi', () => {
 			schemaVersion: 1,
 			port: 3000,
 			projectsDir: '~/.openharness/projects',
+			openaiModel: 'gpt-4o-mini',
+			openaiBaseUrl: null,
 		})
 
 		await expect(api.updateConfig({ port: 4000 })).resolves.toEqual({
@@ -55,6 +57,8 @@ describe('createMockHarnessApi', () => {
 				schemaVersion: 1,
 				port: 4000,
 				projectsDir: '~/.openharness/projects',
+				openaiModel: 'gpt-4o-mini',
+				openaiBaseUrl: null,
 			},
 			restartRequired: true,
 		})

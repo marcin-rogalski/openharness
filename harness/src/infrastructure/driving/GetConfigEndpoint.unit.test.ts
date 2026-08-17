@@ -18,6 +18,8 @@ describe('GetConfigEndpoint', () => {
 			schemaVersion: 1,
 			port: 3000,
 			projectsDir: '/tmp/openharness/projects',
+			openaiModel: 'gpt-4o-mini',
+			openaiBaseUrl: null,
 		}
 		const usecase = {
 			handle: vi.fn().mockResolvedValue({ config }),

@@ -10,6 +10,7 @@ import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySe
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
+import OpenAiAgentRuntimeAdapter from '@/infrastructure/driven/OpenAiAgentRuntimeAdapter'
 
 const defaultProjects: Project[] = [
 	{ id: 'project-1', name: 'OpenHarness', status: 'running' },
@@ -20,11 +21,23 @@ export default async function composeDriven(
 	configRepository: ConfigRepositoryPort,
 ) {
 	const toolProvider = new LocalToolProviderAdapter()
+	const config = await configRepository.load()
+	const apiKey = process.env.OPENAI_API_KEY
+
+	const agentRuntime =
+		apiKey && config
+			? new OpenAiAgentRuntimeAdapter(
+					apiKey,
+					config.openaiModel,
+					config.openaiBaseUrl ?? undefined,
+				)
+			: new MockAgentRuntimeAdapter()
+
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),
 		sessionRepository: new InMemorySessionRepositoryAdapter(),
 		eventLog: new InMemoryEventLogAdapter(),
-		agentRuntime: new MockAgentRuntimeAdapter(),
+		agentRuntime,
 		configRepository,
 		toolRegistry: toolProvider,
 		toolExecutor: toolProvider,

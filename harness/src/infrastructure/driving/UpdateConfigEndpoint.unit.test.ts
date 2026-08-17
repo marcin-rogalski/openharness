@@ -19,6 +19,8 @@ describe('UpdateConfigEndpoint', () => {
 				schemaVersion: 1,
 				port: 4000,
 				projectsDir: '/tmp/openharness/projects',
+				openaiModel: 'gpt-4o-mini',
+				openaiBaseUrl: null,
 			},
 			restartRequired: true,
 		}

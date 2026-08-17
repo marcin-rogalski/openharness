@@ -7,6 +7,8 @@ export function createMockHarnessApi(): HarnessApi {
 		schemaVersion: 1,
 		port: 3000,
 		projectsDir: '~/.openharness/projects',
+		openaiModel: 'gpt-4o-mini',
+		openaiBaseUrl: null,
 	}
 	let sessionId: string | null = null
 

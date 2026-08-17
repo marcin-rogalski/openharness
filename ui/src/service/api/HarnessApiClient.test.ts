@@ -100,6 +100,8 @@ describe('createHarnessApiClient', () => {
 					schemaVersion: 1,
 					port: 3000,
 					projectsDir: '/tmp/projects',
+					openaiModel: 'gpt-4o-mini',
+					openaiBaseUrl: null,
 				},
 			}),
 		)
@@ -110,6 +112,8 @@ describe('createHarnessApiClient', () => {
 			schemaVersion: 1,
 			port: 3000,
 			projectsDir: '/tmp/projects',
+			openaiModel: 'gpt-4o-mini',
+			openaiBaseUrl: null,
 		})
 
 		expect(fetchMock).toHaveBeenCalledWith(
@@ -127,6 +131,8 @@ describe('createHarnessApiClient', () => {
 					schemaVersion: 1,
 					port: 4000,
 					projectsDir: '/tmp/projects',
+					openaiModel: 'gpt-4o-mini',
+					openaiBaseUrl: null,
 				},
 				restartRequired: true,
 			}),
@@ -139,6 +145,8 @@ describe('createHarnessApiClient', () => {
 				schemaVersion: 1,
 				port: 4000,
 				projectsDir: '/tmp/projects',
+				openaiModel: 'gpt-4o-mini',
+				openaiBaseUrl: null,
 			},
 			restartRequired: true,
 		})

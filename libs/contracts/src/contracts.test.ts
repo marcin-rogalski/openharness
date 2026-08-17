@@ -155,7 +155,11 @@ describe('messages', () => {
 describe('config', () => {
 	it('parses a valid config and rejects an invalid one', () => {
 		const config = { schemaVersion: 1, port: 3000, projectsDir: '/projects' }
-		expect(ConfigSchema.parse(config)).toEqual(config)
+		expect(ConfigSchema.parse(config)).toEqual({
+			...config,
+			openaiModel: 'gpt-4o-mini',
+			openaiBaseUrl: null,
+		})
 		expect(() =>
 			ConfigSchema.parse({ schemaVersion: 2, port: 3000, projectsDir: '/p' }),
 		).toThrow()
@@ -168,10 +172,17 @@ describe('config', () => {
 
 	it('parses get and update config responses', () => {
 		const config = { schemaVersion: 1, port: 3000, projectsDir: '/projects' }
-		expect(GetConfigResponseSchema.parse({ config })).toEqual({ config })
+		const parsedConfig = {
+			...config,
+			openaiModel: 'gpt-4o-mini',
+			openaiBaseUrl: null,
+		}
+		expect(GetConfigResponseSchema.parse({ config })).toEqual({
+			config: parsedConfig,
+		})
 		expect(
 			UpdateConfigResponseSchema.parse({ config, restartRequired: true }),
-		).toEqual({ config, restartRequired: true })
+		).toEqual({ config: parsedConfig, restartRequired: true })
 	})
 
 	it('exposes the config endpoints', () => {
@@ -279,6 +290,8 @@ describe('events', () => {
 describe('harnessApiSchema', () => {
 	it('aggregates every endpoint', () => {
 		expect(Object.keys(harnessApiSchema).sort()).toEqual([
+			'approveToolCall',
+			'denyToolCall',
 			'getConfig',
 			'health',
 			'listProjects',
