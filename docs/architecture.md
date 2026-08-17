@@ -17,6 +17,7 @@ Related documents:
 - [ADR 0007: Keyless Session Replay Testing](decisions/0007-keyless-session-replay-testing.md)
 - [Plugin-Ready Runtime Plan](plans/plugin-ready-runtime.md)
 - [DeepSeek Harness research](research/deepseek-harness.md)
+- [Agent Loop research](research/agent-loop.md)
 - [Runtime diagram](diagrams/openharness-runtime.architecture.html)
 - [Diagram source](diagrams/openharness-runtime.architecture.json)
 

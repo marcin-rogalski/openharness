@@ -8,6 +8,7 @@ This plan describes how OpenHarness will adopt the useful parts of DeepSeek Harn
 Related documents:
 
 - [DeepSeek Harness research](../research/deepseek-harness.md)
+- [Agent Loop research](../research/agent-loop.md)
 - [ADR 0001: Plugin Capability Model](../decisions/0001-plugin-capability-model.md)
 - [ADR 0003: Plugin-Ready, Not Plugin-First](../decisions/0003-plugin-ready-not-plugin-first.md)
 - [ADR 0004: Model-Visible Session Event Log](../decisions/0004-model-visible-session-event-log.md)
@@ -17,6 +18,10 @@ Related documents:
 - [ADR 0008: Trust Boundary and Edge-Terminated Auth](../decisions/0008-trust-boundary-edge-terminated-auth.md)
 - [ADR 0009: SQLite-First Storage](../decisions/0009-sqlite-first-storage.md)
 - [ADR 0010: SSE for Event Transport](../decisions/0010-sse-event-transport.md)
+- [ADR 0011: In-House Agent Loop](../decisions/0011-in-house-agent-loop.md)
+- [ADR 0012: Turn/Step Model and Event-Sourced Loop](../decisions/0012-turn-step-model.md)
+- [ADR 0013: Bounded Parallel Tool Execution](../decisions/0013-bounded-parallel-tool-execution.md)
+- [ADR 0014: Non-Streaming V1](../decisions/0014-non-streaming-v1.md)
 
 ## Goal
 
@@ -52,14 +57,19 @@ The system should be:
 
 ## Current Baseline
 
-Stages 1 and 2 are complete:
+Stages 1–6 are complete:
 
 - UI lists projects and sends a project message.
 - Harness exposes health, project listing, config read/update, send-message, approve-tool-call, and deny-tool-call endpoints.
-- `SendProjectMessageUsecase` resolves or creates a session, appends user/model events to the event log, and calls `MockAgentRuntimeAdapter`.
-- `ToolExecutionService` runs the staged pipeline: resolve tool → policy → approval → execute → freeze result.
-- `LocalToolProviderAdapter` exposes one mock tool; `AllowAllPolicyAdapter` and `ManualApprovalAdapter` are in place.
-- There is no real model provider, durable storage, sandbox, hooks, replay testing, or MCP gateway yet.
+- `SendProjectMessageUsecase` resolves or creates a session, appends user/model events to the event log, and calls the agent runtime.
+- `ToolExecutionService` runs the staged pipeline: resolve tool → policy → approval → sandbox → execute → freeze result.
+- `LocalToolProviderAdapter` exposes built-in tools; `AllowAllPolicyAdapter` and `ManualApprovalAdapter` are in place.
+- `OpenAiAgentRuntimeAdapter` calls the OpenAI-compatible API with provider-based config (`providers` record + `defaultModel`).
+- `LogicalPathSandboxAdapter` enforces path-based read/write boundaries (read-only, workspace-write).
+- `HookRegistryService` invokes typed internal hooks at stable boundaries (session, turn, step, tool, policy, sandbox, event).
+- Built-in hooks: audit, budget guard, secret redaction.
+- `ReplayAgentRuntimeAdapter` + `ReplayRunner` + `RecordFixture` enable keyless replay testing with committed fixtures.
+- There is no agent loop, durable storage, SSE transport, approval UI, or MCP gateway yet.
 
 This baseline is intentionally small. The plan evolves it into the target runtime.
 
@@ -283,7 +293,7 @@ Acceptance:
 - A denied tool call cannot be re-allowed by a later hook.
 - The agent runtime receives a frozen tool result.
 
-## Stage 3: Real Model Provider
+## Stage 3: Real Model Provider ✅
 
 Goal: wire one real model provider end-to-end to validate event/context shapes before building more pipeline stages on top of the mock.
 
@@ -319,7 +329,72 @@ Acceptance:
 - The mock adapter remains available for development and testing without an API key.
 - No API key is stored in the config file; it is read from the environment.
 
-## Stage 4: Fail-Closed Sandbox Ladder
+## Stage 3.5: Agent Loop
+
+Goal: implement the multi-step tool-calling loop in the application layer.
+
+See [Agent Loop research](../research/agent-loop.md) for the full analysis and design.
+
+Tasks:
+
+1. Evolve `AgentRuntimePort`:
+   - Add `tools: ToolDefinition[]` to `AgentRuntimeRequest`.
+   - Add `turnId: string` and `step: number` to `AgentRuntimeRequest`.
+   - Add `finishReason: FinishReason` to `AgentRuntimeResponse`.
+   - Add `usage: TokenUsage` to `AgentRuntimeResponse`.
+   - Change `toolCalls` to use the domain `ToolCall[]` type.
+2. Add domain types:
+   - `FinishReason` (stop, tool_calls, max_tokens, content_filter, error)
+   - `TokenUsage` (inputTokens, outputTokens)
+   - `AgentLoopConfig` (maxSteps, maxParallelTools)
+3. Create `AgentLoopService` in `application/services/`:
+   - Single flat loop (turn = usecase invocation, step = model request + tool execution).
+   - Pre-step hooks (waterfall, can reject → blocked).
+   - Context derivation from session events.
+   - Model call via `AgentRuntimePort`.
+   - Tool call execution via `ToolExecutionService` (bounded parallel pool).
+   - Termination: no tool calls, max steps, pre-step reject, model error, abort, max tokens.
+   - Every step produces session events.
+4. Add bounded parallel pool utility:
+   - Default 10 concurrent.
+   - Results committed in model order.
+   - Abort: cancel in-flight, synthetic error results for uncompleted.
+   - Exclusive tools: sequential execution.
+5. Update `SendProjectMessageUsecase`:
+   - Call `AgentLoopService.run()` instead of a single `agentRuntime.handle()`.
+   - Pass `AgentLoopConfig` from agent configuration.
+6. Update `OpenAiAgentRuntimeAdapter`:
+   - Send `tools` in the request.
+   - Parse `finish_reason` from the response.
+   - Parse `usage` from the response.
+   - Map `tool_calls` to domain `ToolCall[]`.
+7. Update `MockAgentRuntimeAdapter`:
+   - Support tool call responses (return tool calls, then final response on next call).
+8. Update `ReplayAgentRuntimeAdapter`:
+   - Support multi-step replay (sequence of responses).
+9. Update `SessionContextService`:
+   - Include tool results in the derived context (role: 'tool' messages).
+10. Add tests:
+    - Single step (no tools) → completed.
+    - Multi-step (tool calls) → completed after N steps.
+    - Max steps → `max_steps_reached` event.
+    - Pre-step reject → `turn_blocked` event.
+    - Model error → `turn_error` event.
+    - Abort → `turn_aborted` event.
+    - Parallel tool execution → results in model order.
+    - Tool error → synthetic error result, loop continues.
+    - Replay test: multi-step tool call fixture.
+
+Acceptance:
+
+- A user message can trigger multiple model steps with tool calls.
+- Each step is a session event; the turn is reconstructable from the event log.
+- Tool calls execute in parallel (bounded) with results in model order.
+- The loop terminates on: no tool calls, max steps, reject, error, abort, max tokens.
+- The mock and replay adapters support multi-step scenarios.
+- No library loop is used; the loop is in the application layer.
+
+## Stage 4: Fail-Closed Sandbox Ladder ✅
 
 Goal: make project access safe and explicit.
 
@@ -355,7 +430,7 @@ Acceptance:
 - The system never silently falls back to unrestricted execution.
 - Sandbox decisions are auditable through session events.
 
-## Stage 5: Internal Hooks
+## Stage 5: Internal Hooks ✅
 
 Goal: add extension points without an external plugin loader.
 
@@ -413,9 +488,9 @@ Acceptance:
 - ✅ Committed fixtures contain no secrets (redaction in `RecordFixture`).
 - ✅ Replay tests cover the core message and tool-call paths.
 
-## Stage 7: Plugin Readiness
+## Stage 7: Plugin Readiness (Deferred)
 
-Goal: make external plugins viable without enabling them by default.
+Status: deferred for unknown time. Revisit when the core runtime is stable and we have concrete plugin use cases.
 
 Tasks:
 
@@ -490,6 +565,44 @@ Acceptance:
 - Budgets enforce token and cost limits through the hook pipeline.
 - Permissions control tool/sandbox/MCP access through the policy pipeline.
 - Budgets and permissions are per-project or per-agent, not per-user (ADR 0008).
+
+## Stage 9: Durable Storage + SSE + Approval UI
+
+Status: pending user input. Requires decisions on storage backend, SSE transport details, and approval UX before starting.
+
+Goal: make sessions durable, stream events to the UI in real time, and provide an approval interface.
+
+Tasks:
+
+1. Add SQLite storage adapters (ADR 0009):
+   - `SqliteSessionRepositoryAdapter`
+   - `SqliteEventLogAdapter`
+   - `SqliteProjectRepositoryAdapter`
+   - Migration management
+2. Add SSE event transport (ADR 0010):
+   - `EventStreamEndpoint` (SSE)
+   - `EventTransportPort`
+   - `SseEventTransportAdapter`
+   - Event cursor/resume support
+3. Add approval UI:
+   - `ApprovalPrompt` component
+   - Real-time approval request via SSE
+   - Approve/deny buttons wired to existing endpoints
+4. Wire durable storage in composition root:
+   - Use SQLite adapters when configured
+   - Fall back to in-memory adapters for development
+5. Add tests:
+   - Durable session persistence across restarts
+   - SSE event streaming
+   - Approval flow end-to-end
+   - Event cursor resume
+
+Acceptance:
+
+- Sessions persist across process restarts.
+- The UI receives events in real time via SSE.
+- Tool call approvals are presented in the UI and can be granted/denied.
+- Event cursor allows the UI to resume from where it left off.
 
 ## Project Reshape
 
@@ -627,15 +740,19 @@ The recommended order is:
 
 1. Stage 1: Session and Event Core. ✅
 2. Stage 2: Tool Registry and Staged Execution. ✅
-3. Stage 3: Real Model Provider.
-4. Stage 4: Fail-Closed Sandbox Ladder.
-5. Stage 5: Internal Hooks.
-6. Stage 6: Keyless Replay Testing.
-7. Stage 7: Plugin Readiness.
-8. Stage 8: Agent Presets, Rules, Budgets, and Permissions.
+3. Stage 3: Real Model Provider. ✅
+4. Stage 3.5: Agent Loop. ← next
+5. Stage 4: Fail-Closed Sandbox Ladder. ✅
+6. Stage 5: Internal Hooks. ✅
+7. Stage 6: Keyless Replay Testing. ✅
+8. Stage 7: Plugin Readiness. (deferred)
+9. Stage 8: Agent Presets, Rules, Budgets, and Permissions.
+10. Stage 9: Durable Storage + SSE + Approval UI. (pending user input)
 
 Stages 5 and 6 can overlap once the tool pipeline and event log are stable.
-Stage 3 must complete before Stage 4: the sandbox is built around tool calls, and the tool call shapes need to be validated against a real model first.
+Stage 3 must complete before Stage 3.5: the loop needs validated tool call shapes from a real model.
+Stage 3.5 must complete before Stage 4: the sandbox is built around tool calls in the loop, and the loop's parallel execution model needs to be stable.
+Stage 9 requires user input before starting (durable storage + SSE + approval UI).
 
 ## Definition of Done for Each Stage
 
