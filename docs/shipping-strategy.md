@@ -8,6 +8,10 @@ Use a **local process composer later** for a faster dev loop.
 
 Consider **Tauri later as an optional desktop wrapper**, not as the first shipping target.
 
+## Deployment Target Update
+
+[ADR 0002](decisions/0002-single-harness-server-process.md) targets a single harness server process for v1. That process serves the API, MCP surface, event stream, and built UI static assets. The two-service Compose layout described below is the current transitional integration surface.
+
 ## Rationale
 
 OpenHarness is an always-on, API-controlled harness with a browser UI. The backend is the durable product surface: it owns projects, agent sessions, MCP/API contracts, and the tunnel boundary.

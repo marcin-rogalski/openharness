@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "OpenHarness Runtime Architecture",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "command-event-path",
+        "label": "Command and event path",
+        "focus": ["ui", "gateway", "session", "events", "event_log"],
+        "note": "Commands enter through the gateway, the session runtime performs work, and events stream back to clients."
+      },
+      {
+        "id": "capability-boundary",
+        "label": "Capability boundary",
+        "focus": ["session", "tools", "sandbox", "mcp", "memory", "project"],
+        "note": "Tools, MCP servers, memory, and sandbox access are capability adapters behind stable ports."
+      },
+      {
+        "id": "control-plane",
+        "label": "Control plane",
+        "focus": ["config", "session", "tools", "sandbox"],
+        "note": "Declarative configuration controls agents, rules, tools, permissions, and sandbox policy."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [48, 72],
+    "cols": 6,
+    "gapX": 76,
+    "gapY": 92,
+    "cellW": 168,
+    "cellH": 76
+  },
+  "components": [
+    { "id": "ui", "type": "frontend", "label": "OpenHarness UI", "sublabel": "React client", "row": 1, "col": 0 },
+    { "id": "gateway", "type": "backend", "label": "Harness Gateway", "sublabel": "API + MCP", "row": 1, "col": 1 },
+    { "id": "session", "type": "backend", "label": "Session Runtime", "sublabel": "actor / orchestrator", "row": 1, "col": 2 },
+    { "id": "tools", "type": "backend", "label": "Tool Registry", "sublabel": "capability plugins", "row": 1, "col": 3 },
+    { "id": "sandbox", "type": "security", "label": "Sandbox", "sublabel": "execution boundary", "row": 1, "col": 4 },
+    { "id": "project", "type": "external", "label": "Project Workspace", "sublabel": "files / commands", "row": 1, "col": 5 },
+    { "id": "events", "type": "messagebus", "label": "Event Stream", "sublabel": "live updates", "row": 0, "col": 1 },
+    { "id": "event_log", "type": "database", "label": "Event Log", "sublabel": "append-only", "row": 0, "col": 2 },
+    { "id": "mcp", "type": "external", "label": "MCP Servers", "sublabel": "tool sources", "row": 0, "col": 4 },
+    { "id": "config", "type": "database", "label": "Control Store", "sublabel": "projects / agents / rules", "row": 2, "col": 1 },
+    { "id": "memory", "type": "database", "label": "Memory Service", "sublabel": "scoped context", "row": 2, "col": 3 }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "OpenHarness Runtime",
+      "wraps": ["gateway", "session", "events", "event_log", "config", "tools", "sandbox", "memory", "mcp"]
+    }
+  ],
+  "connections": [
+    { "id": "ui-commands", "from": "ui", "to": "gateway", "label": "commands", "variant": "emphasis", "labelDx": -48, "labelDy": 47 },
+    { "id": "gateway-dispatch", "from": "gateway", "to": "session", "label": "dispatch", "labelDy": 14 },
+    { "id": "session-tools", "from": "session", "to": "tools", "label": "tool calls" },
+    { "id": "tools-sandbox", "from": "tools", "to": "sandbox", "label": "execute", "labelDy": 14 },
+    { "id": "sandbox-project", "from": "sandbox", "to": "project", "label": "workspace access" },
+    { "id": "session-events", "from": "session", "to": "events", "label": "emit" },
+    { "id": "events-log", "from": "events", "to": "event_log", "label": "append" },
+    { "id": "events-ui", "from": "events", "to": "ui", "label": "stream", "variant": "dashed" },
+    { "id": "session-config", "from": "session", "to": "config", "label": "policy" },
+    { "id": "tools-memory", "from": "tools", "to": "memory", "label": "memory ops", "labelDy": 24 },
+    { "id": "tools-mcp", "from": "tools", "to": "mcp", "label": "MCP" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Command / Event Loop",
+      "items": [
+        "UI clients send commands to the harness gateway",
+        "Session runtime executes work as durable session actors",
+        "Runtime emits events for progress, tools, approvals, and results",
+        "UI clients subscribe to the same event stream"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Capability Plugins",
+      "items": [
+        "Tools, MCP servers, memory, and sandbox are adapters behind ports",
+        "Built-in capabilities use the same plugin contract as external ones",
+        "Agents and rules are declarative configuration, not execution engines"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "Process Model",
+      "items": [
+        "Target v1: one harness server process serves API, MCP, and built UI",
+        "UI remains a separate client package and never executes agent logic",
+        "Current two-service Docker Compose layout is transitional"
+      ]
+    }
+  ]
+}

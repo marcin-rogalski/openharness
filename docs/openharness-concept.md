@@ -9,6 +9,8 @@ OpenHarness is a local-first agentic coding harness and IDE. It provides an alwa
 
 The UI is a browser interface. The backend exposes only API and MCP surfaces. The app is tunneled to the outside world so the UI can be used remotely, for example from a phone.
 
+Architecture details, ADRs, and the runtime diagram live in [architecture.md](architecture.md).
+
 ## Core Idea
 
 The system is command/event based:
