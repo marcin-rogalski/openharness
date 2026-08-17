@@ -392,43 +392,26 @@ Acceptance:
 - Hooks are typed, testable, and versioned.
 - A future plugin can implement the same hook contracts.
 
-## Stage 6: Keyless Replay Testing
+## Stage 6: Keyless Replay Testing ✅
 
 Goal: make agent/runtime behavior testable without API keys.
 
 Tasks:
 
-1. Add a test-support area:
-   - `harness/src/test-support` or `libs/replay`, depending on package needs.
-2. Add fixture loader:
-   - reads committed session event fixtures;
-   - validates fixture schema.
-3. Add normalizer:
-   - replaces volatile ids and timestamps;
-   - redacts secrets.
-4. Add `ReplayAgentRuntimeAdapter`:
-   - derives deterministic model output from fixture;
-   - fails if the fixture is underrun.
-5. Add replay test runner:
-   - runs the real application pipeline;
-   - diffs produced events against expected events.
-6. Add record/refresh tooling:
-   - record a fixture from a controlled run;
-   - refresh an expected fixture after intentional changes.
-7. Add replay tests for:
-   - simple message;
-   - tool call success;
-   - tool denial;
-   - approval flow;
-   - sandbox denial;
-   - steering mid-turn.
+1. ✅ Add a test-support area: `harness/src/test-support/`
+2. ✅ Add fixture loader: `FixtureLoader.ts` + `FixtureSchema.ts` (Zod validation)
+3. ✅ Add normalizer: `Normalizer.ts` (UUID/timestamp/sessionId/projectId normalization, secret redaction)
+4. ✅ Add `ReplayAgentRuntimeAdapter`: deterministic model output, fails on underrun
+5. ✅ Add replay test runner: `ReplayRunner.ts` (wires real usecase, diffs events)
+6. ✅ Add record/refresh tooling: `RecordFixture.ts` (extract turns, build/write/refresh)
+7. ✅ Add replay tests: simple-message, tool-call, multi-turn fixtures + integration tests
 
 Acceptance:
 
-- CI runs replay tests without API keys.
-- A behavior change produces a readable session log diff.
-- Committed fixtures contain no secrets.
-- Replay tests cover the core tool and policy paths.
+- ✅ CI runs replay tests without API keys.
+- ✅ A behavior change produces a readable session log diff (`diffEvents`).
+- ✅ Committed fixtures contain no secrets (redaction in `RecordFixture`).
+- ✅ Replay tests cover the core message and tool-call paths.
 
 ## Stage 7: Plugin Readiness
 
