@@ -1,10 +1,23 @@
 import type { ApprovalPort } from '@/application/ports/adapters/ApprovalPort'
 import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
+import type { SandboxPort } from '@/application/ports/adapters/SandboxPort'
 import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutorPort'
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import type { ToolCall } from '@/domain/ToolCall'
 import { ToolNotFoundError } from '@/domain/ToolNotFoundError'
 import type { ToolResult } from '@/domain/ToolResult'
+
+const PATH_KEYS = ['path', 'file', 'filePath', 'target'] as const
+
+function extractPath(input: Record<string, unknown>): string | undefined {
+	for (const key of PATH_KEYS) {
+		const value = input[key]
+		if (typeof value === 'string' && value.length > 0) {
+			return value
+		}
+	}
+	return undefined
+}
 
 export default class ToolExecutionService {
 	constructor(
@@ -12,6 +25,7 @@ export default class ToolExecutionService {
 		private readonly executor: ToolExecutorPort,
 		private readonly policy: PolicyPort,
 		private readonly approval: ApprovalPort,
+		private readonly sandbox: SandboxPort,
 	) {}
 
 	async execute(call: ToolCall): Promise<ToolResult> {
@@ -40,6 +54,23 @@ export default class ToolExecutionService {
 					status: 'error',
 					output: null,
 					error: 'Tool call denied by approval',
+					frozen: true,
+				})
+			}
+		}
+
+		if (tool.sandboxLevel !== 'none') {
+			const accessPath = extractPath(call.input)
+			const sandboxDecision = await this.sandbox.checkAccess(
+				tool.sandboxLevel,
+				accessPath,
+			)
+			if (!sandboxDecision.allowed) {
+				return this.freeze({
+					toolCallId: call.id,
+					status: 'error',
+					output: null,
+					error: `Sandbox denied: ${sandboxDecision.reason}`,
 					frozen: true,
 				})
 			}

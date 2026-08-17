@@ -4,6 +4,7 @@ import type {
 	PolicyDecision,
 	PolicyPort,
 } from '@/application/ports/adapters/PolicyPort'
+import type { SandboxPort } from '@/application/ports/adapters/SandboxPort'
 import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutorPort'
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import type { ToolCall } from '@/domain/ToolCall'
@@ -63,6 +64,15 @@ function createApproval(decision: 'approved' | 'denied' = 'approved') {
 	} as ApprovalPort
 }
 
+function createSandbox(allowed = true) {
+	return {
+		checkAccess: async () => ({
+			allowed,
+			reason: allowed ? null : 'denied by sandbox',
+		}),
+	} as SandboxPort
+}
+
 describe('ToolExecutionService', () => {
 	it('executes a tool call successfully when policy allows', async () => {
 		const service = new ToolExecutionService(
@@ -70,6 +80,7 @@ describe('ToolExecutionService', () => {
 			createExecutor({ data: 42 }),
 			createPolicy('allow'),
 			createApproval(),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())
@@ -87,6 +98,7 @@ describe('ToolExecutionService', () => {
 			createExecutor(),
 			createPolicy('deny'),
 			createApproval(),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())
@@ -103,6 +115,7 @@ describe('ToolExecutionService', () => {
 			createExecutor({ approved: true }),
 			createPolicy('require_approval'),
 			createApproval('approved'),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())
@@ -117,6 +130,7 @@ describe('ToolExecutionService', () => {
 			createExecutor(),
 			createPolicy('require_approval'),
 			createApproval('denied'),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())
@@ -132,6 +146,7 @@ describe('ToolExecutionService', () => {
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
+			createSandbox(),
 		)
 
 		await expect(
@@ -145,6 +160,7 @@ describe('ToolExecutionService', () => {
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())
@@ -170,6 +186,7 @@ describe('ToolExecutionService', () => {
 			executor,
 			createPolicy('allow'),
 			createApproval(),
+			createSandbox(),
 		)
 
 		const result = await service.execute(createCall())

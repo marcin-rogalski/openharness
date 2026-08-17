@@ -8,6 +8,7 @@ import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAda
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
 import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySessionRepositoryAdapter'
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
+import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 import OpenAiAgentRuntimeAdapter from '@/infrastructure/driven/OpenAiAgentRuntimeAdapter'
@@ -47,6 +48,8 @@ export default async function composeDriven(
 		agentRuntime = new MockAgentRuntimeAdapter()
 	}
 
+	const workspaceRoot = config?.projectsDir ?? '.'
+
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),
 		sessionRepository: new InMemorySessionRepositoryAdapter(),
@@ -57,5 +60,9 @@ export default async function composeDriven(
 		toolExecutor: toolProvider,
 		policy: new AllowAllPolicyAdapter(),
 		approval: new ManualApprovalAdapter(),
+		sandbox: new LogicalPathSandboxAdapter({
+			level: 'workspace-write',
+			workspaceRoot,
+		}),
 	}
 }

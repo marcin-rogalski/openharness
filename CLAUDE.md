@@ -33,6 +33,7 @@ ln -s CLAUDE.md AGENTS.md
 
 - **Strict split between UI and backend.** UI is served via web browser; backend exposes only API and MCP server — no UI.
 - **Backend follows hexagonal architecture** (ports & adapters). Domain depends on nothing; application depends only on domain; infrastructure/adapters depend on application ports. See `/hexagonal-architecture` skill for the canonical layout.
+- **Services are shared or they don't exist.** A class in `application/services/` must be used by 2+ usecases. If only one usecase needs it, the class lives in that usecase's folder (alongside the usecase, imported relatively). The usecase folder's `index.ts` default-exports the usecase, making the internal structure invisible to importers.
 
 ### Git-ops & Declarative Design
 
