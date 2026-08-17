@@ -74,8 +74,13 @@ describe('createDefaultConfig', () => {
 			schemaVersion: 1,
 			port: 3000,
 			projectsDir: path.join('/data', 'projects'),
-			openaiModel: 'gpt-4o-mini',
-			openaiBaseUrl: null,
+			providers: {
+				openai: {
+					url: 'https://api.openai.com/v1',
+					models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+				},
+			},
+			defaultModel: 'openai/gpt-4o-mini',
 		})
 	})
 
@@ -107,8 +112,13 @@ describe('bootstrapConfig', () => {
 			schemaVersion: 1,
 			port: 4000,
 			projectsDir: path.join(homeDir, 'projects'),
-			openaiModel: 'gpt-4o-mini',
-			openaiBaseUrl: null,
+			providers: {
+				openai: {
+					url: 'https://api.openai.com/v1',
+					models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+				},
+			},
+			defaultModel: 'openai/gpt-4o-mini',
 		})
 		expect(result.configPath).toBe(path.join(dataDir, 'config.json'))
 		expect(await readFile(result.configPath, 'utf8')).toContain('"port": 4000')
@@ -125,8 +135,13 @@ describe('bootstrapConfig', () => {
 				schemaVersion: 1,
 				port: 5000,
 				projectsDir: '/existing/projects',
-				openaiModel: 'gpt-4o-mini',
-				openaiBaseUrl: null,
+				providers: {
+					openai: {
+						url: 'https://api.openai.com/v1',
+						models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+					},
+				},
+				defaultModel: 'openai/gpt-4o-mini',
 			}),
 			'utf8',
 		)
@@ -142,8 +157,13 @@ describe('bootstrapConfig', () => {
 			schemaVersion: 1,
 			port: 5000,
 			projectsDir: '/existing/projects',
-			openaiModel: 'gpt-4o-mini',
-			openaiBaseUrl: null,
+			providers: {
+				openai: {
+					url: 'https://api.openai.com/v1',
+					models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+				},
+			},
+			defaultModel: 'openai/gpt-4o-mini',
 		})
 	})
 

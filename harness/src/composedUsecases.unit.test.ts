@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
 import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
@@ -14,8 +14,13 @@ const validConfig: HarnessConfig = {
 	schemaVersion: 1,
 	port: 3000,
 	projectsDir: '/tmp/openharness/projects',
-	openaiModel: 'gpt-4o-mini',
-	openaiBaseUrl: null,
+	providers: {
+		openai: {
+			url: 'https://api.openai.com/v1',
+			models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+		},
+	},
+	defaultModel: 'openai/gpt-4o-mini',
 }
 
 function createConfigRepository(config: HarnessConfig) {
@@ -24,6 +29,25 @@ function createConfigRepository(config: HarnessConfig) {
 		save: vi.fn(),
 	} as ConfigRepositoryPort
 }
+
+beforeEach(() => {
+	vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+		new Response(
+			JSON.stringify({
+				choices: [
+					{
+						message: {
+							role: 'assistant',
+							content: 'Mock response',
+							tool_calls: [],
+						},
+					},
+				],
+			}),
+			{ status: 200, headers: { 'Content-Type': 'application/json' } },
+		),
+	)
+})
 
 describe('composeUsecases', () => {
 	it('builds the list projects usecase', async () => {

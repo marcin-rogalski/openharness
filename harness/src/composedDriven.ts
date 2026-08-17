@@ -22,16 +22,30 @@ export default async function composeDriven(
 ) {
 	const toolProvider = new LocalToolProviderAdapter()
 	const config = await configRepository.load()
-	const apiKey = process.env.OPENAI_API_KEY
 
-	const agentRuntime =
-		apiKey && config
-			? new OpenAiAgentRuntimeAdapter(
-					apiKey,
-					config.openaiModel,
-					config.openaiBaseUrl ?? undefined,
-				)
-			: new MockAgentRuntimeAdapter()
+	let agentRuntime:
+		| InstanceType<typeof MockAgentRuntimeAdapter>
+		| InstanceType<typeof OpenAiAgentRuntimeAdapter>
+
+	if (config) {
+		const slashIndex = config.defaultModel.indexOf('/')
+		const providerName = config.defaultModel.slice(0, slashIndex)
+		const modelId = config.defaultModel.slice(slashIndex + 1)
+		const provider = config.providers[providerName]
+
+		if (provider) {
+			const apiKey = process.env.OPENAI_API_KEY ?? 'none'
+			agentRuntime = new OpenAiAgentRuntimeAdapter(
+				apiKey,
+				modelId,
+				provider.url,
+			)
+		} else {
+			agentRuntime = new MockAgentRuntimeAdapter()
+		}
+	} else {
+		agentRuntime = new MockAgentRuntimeAdapter()
+	}
 
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),

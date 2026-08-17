@@ -9,8 +9,13 @@ const validConfig: HarnessConfig = {
 	schemaVersion: 1,
 	port: 3000,
 	projectsDir: '/tmp/openharness/projects',
-	openaiModel: 'gpt-4o-mini',
-	openaiBaseUrl: null,
+	providers: {
+		openai: {
+			url: 'https://api.openai.com/v1',
+			models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+		},
+	},
+	defaultModel: 'openai/gpt-4o-mini',
 }
 
 async function createConfigPath(): Promise<string> {

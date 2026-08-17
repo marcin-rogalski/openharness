@@ -24,6 +24,12 @@ export default class UpdateConfigUsecase implements UpdateConfigUseCasePort {
 			...(parsed.projectsDir !== undefined
 				? { projectsDir: parsed.projectsDir }
 				: {}),
+			...(parsed.providers !== undefined
+				? { providers: parsed.providers }
+				: {}),
+			...(parsed.defaultModel !== undefined
+				? { defaultModel: parsed.defaultModel }
+				: {}),
 		}
 		const restartRequired = next.port !== current.port
 
