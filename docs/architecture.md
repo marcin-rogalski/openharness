@@ -10,6 +10,13 @@ Related documents:
 - [Concept](openharness-concept.md)
 - [ADR 0001: Plugin Capability Model](decisions/0001-plugin-capability-model.md)
 - [ADR 0002: Single Harness Server Process](decisions/0002-single-harness-server-process.md)
+- [ADR 0003: Plugin-Ready, Not Plugin-First](decisions/0003-plugin-ready-not-plugin-first.md)
+- [ADR 0004: Model-Visible Session Event Log](decisions/0004-model-visible-session-event-log.md)
+- [ADR 0005: Staged Tool Execution Pipeline](decisions/0005-staged-tool-execution-pipeline.md)
+- [ADR 0006: Fail-Closed Sandbox Ladder](decisions/0006-fail-closed-sandbox-ladder.md)
+- [ADR 0007: Keyless Session Replay Testing](decisions/0007-keyless-session-replay-testing.md)
+- [Plugin-Ready Runtime Plan](plans/plugin-ready-runtime.md)
+- [DeepSeek Harness research](research/deepseek-harness.md)
 - [Runtime diagram](diagrams/openharness-runtime.architecture.html)
 - [Diagram source](diagrams/openharness-runtime.architecture.json)
 
@@ -171,7 +178,9 @@ Capabilities are swappable adapters behind stable ports:
 
 Agents, projects, sessions, rules, and tools are domain/configuration entities, not plugins.
 
-See [ADR 0001](decisions/0001-plugin-capability-model.md).
+v1 is **plugin-ready, not plugin-first**: the runtime exposes stable ports and typed internal hooks, but it does not ship an external plugin loader. External plugins can later implement the same ports and hook contracts.
+
+See [ADR 0001](decisions/0001-plugin-capability-model.md) and [ADR 0003](decisions/0003-plugin-ready-not-plugin-first.md).
 
 ## Process Model
 
@@ -203,13 +212,17 @@ The current codebase implements the first vertical slice:
 The target architecture adds:
 
 - session events and event stream
+- model-visible session log
 - tool registry
+- staged tool execution pipeline
+- internal hooks
 - MCP gateway
 - memory service
 - sandbox adapter
 - durable persistence
 - policy engine
 - rule/trigger engine
+- keyless replay testing
 - generated capability catalogs
 
 The current slice is intentionally small. It validates the UI/API/harness boundary before the execution plane is expanded.
