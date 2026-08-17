@@ -14,6 +14,9 @@ Related documents:
 - [ADR 0005: Staged Tool Execution Pipeline](../decisions/0005-staged-tool-execution-pipeline.md)
 - [ADR 0006: Fail-Closed Sandbox Ladder](../decisions/0006-fail-closed-sandbox-ladder.md)
 - [ADR 0007: Keyless Session Replay Testing](../decisions/0007-keyless-session-replay-testing.md)
+- [ADR 0008: Trust Boundary and Edge-Terminated Auth](../decisions/0008-trust-boundary-edge-terminated-auth.md)
+- [ADR 0009: SQLite-First Storage](../decisions/0009-sqlite-first-storage.md)
+- [ADR 0010: SSE for Event Transport](../decisions/0010-sse-event-transport.md)
 
 ## Goal
 
@@ -49,13 +52,14 @@ The system should be:
 
 ## Current Baseline
 
-The current implementation is a first vertical slice:
+Stages 1 and 2 are complete:
 
 - UI lists projects and sends a project message.
-- Harness exposes health, project listing, config read/update, and send-message endpoints.
-- `SendProjectMessageUsecase` calls `MockAgentRuntimeAdapter`.
-- The usecase returns `AgentTimelineEntry` objects directly.
-- There is no durable session, event log, tool registry, policy engine, sandbox, approval flow, memory service, or MCP gateway yet.
+- Harness exposes health, project listing, config read/update, send-message, approve-tool-call, and deny-tool-call endpoints.
+- `SendProjectMessageUsecase` resolves or creates a session, appends user/model events to the event log, and calls `MockAgentRuntimeAdapter`.
+- `ToolExecutionService` runs the staged pipeline: resolve tool → policy → approval → execute → freeze result.
+- `LocalToolProviderAdapter` exposes one mock tool; `AllowAllPolicyAdapter` and `ManualApprovalAdapter` are in place.
+- There is no real model provider, durable storage, sandbox, hooks, replay testing, or MCP gateway yet.
 
 This baseline is intentionally small. The plan evolves it into the target runtime.
 
@@ -76,6 +80,8 @@ The domain will contain plain business types:
 - `SandboxPolicy`
 - `Agent`
 - `Rule`
+- `Budget`
+- `Permission`
 
 Domain types depend on nothing outside the domain.
 
@@ -116,6 +122,7 @@ Driven adapters:
 - `InMemorySessionRepositoryAdapter`
 - `InMemoryEventLogAdapter`
 - `MockAgentRuntimeAdapter`
+- `OpenAiAgentRuntimeAdapter`
 - `ReplayAgentRuntimeAdapter`
 - `LocalToolProviderAdapter`
 - `McpToolGatewayAdapter`
@@ -276,7 +283,43 @@ Acceptance:
 - A denied tool call cannot be re-allowed by a later hook.
 - The agent runtime receives a frozen tool result.
 
-## Stage 3: Fail-Closed Sandbox Ladder
+## Stage 3: Real Model Provider
+
+Goal: wire one real model provider end-to-end to validate event/context shapes before building more pipeline stages on top of the mock.
+
+Tasks:
+
+1. Add `openai` config to `HarnessConfig`:
+   - `openaiApiKey` (read from environment variable `OPENAI_API_KEY`, not stored in config file);
+   - `openaiModel` (default `gpt-4o-mini`);
+   - `openaiBaseUrl` (optional override for compatibility endpoints).
+2. Add `OpenAiAgentRuntimeAdapter`:
+   - implements `AgentRuntimePort`;
+   - uses `fetch` to call the OpenAI Chat Completions API;
+   - maps `ModelContextMessage[]` to OpenAI messages;
+   - parses the response into `AgentRuntimeResponse` (thinking, toolCalls, response);
+   - handles API errors as domain errors.
+3. Wire the adapter in `composedDriven.ts`:
+   - use `OpenAiAgentRuntimeAdapter` when `OPENAI_API_KEY` is set;
+   - fall back to `MockAgentRuntimeAdapter` otherwise.
+4. Add integration tests:
+   - mock the `fetch` call;
+   - verify request shape (model, messages, tools);
+   - verify response parsing (content, tool_calls, reasoning);
+   - verify error handling (API error, timeout, invalid response).
+5. Validate end-to-end:
+   - send a message through the UI;
+   - confirm the real model response is stored as a session event;
+   - confirm the UI timeline reflects the real response.
+
+Acceptance:
+
+- A user message produces a real model response stored as a session event.
+- The event/context shapes work against the real OpenAI API.
+- The mock adapter remains available for development and testing without an API key.
+- No API key is stored in the config file; it is read from the environment.
+
+## Stage 4: Fail-Closed Sandbox Ladder
 
 Goal: make project access safe and explicit.
 
@@ -312,7 +355,7 @@ Acceptance:
 - The system never silently falls back to unrestricted execution.
 - Sandbox decisions are auditable through session events.
 
-## Stage 4: Internal Hooks
+## Stage 5: Internal Hooks
 
 Goal: add extension points without an external plugin loader.
 
@@ -349,7 +392,7 @@ Acceptance:
 - Hooks are typed, testable, and versioned.
 - A future plugin can implement the same hook contracts.
 
-## Stage 5: Keyless Replay Testing
+## Stage 6: Keyless Replay Testing
 
 Goal: make agent/runtime behavior testable without API keys.
 
@@ -387,7 +430,7 @@ Acceptance:
 - Committed fixtures contain no secrets.
 - Replay tests cover the core tool and policy paths.
 
-## Stage 6: Plugin Readiness
+## Stage 7: Plugin Readiness
 
 Goal: make external plugins viable without enabling them by default.
 
@@ -421,9 +464,9 @@ Acceptance:
 - The capability catalog lists built-in and loaded capabilities.
 - No Cordis-style microkernel is introduced.
 
-## Stage 7: Agent Presets and Rules
+## Stage 8: Agent Presets, Rules, Budgets, and Permissions
 
-Goal: make agents and rules declarative product surfaces.
+Goal: make agents, rules, budgets, and permissions declarative product surfaces.
 
 Tasks:
 
@@ -441,16 +484,29 @@ Tasks:
    - if;
    - then;
    - guard.
-3. Add configuration schemas for agents and rules.
-4. Add usecases to list/create/update agents and rules.
-5. Add UI configuration surfaces.
-6. Add replay tests for preset-selected tools and rule-triggered actions.
+3. Add `Budget` domain type:
+   - token limit per turn/session;
+   - cost limit per turn/session;
+   - enforcement point (pre-request or post-response).
+4. Add `Permission` domain type:
+   - resource (tool, sandbox level, MCP server);
+   - action (allow, deny, require_approval);
+   - scope (project, agent, session).
+5. Add `BudgetPort` and `PermissionPort` driven ports.
+6. Add `BudgetGuardHook` and `PermissionPolicyHook` built-in hooks (from Stage 5).
+7. Add configuration schemas for agents, rules, budgets, and permissions.
+8. Add usecases to list/create/update agents, rules, budgets, and permissions.
+9. Add UI configuration surfaces.
+10. Add replay tests for preset-selected tools, rule-triggered actions, budget enforcement, and permission checks.
 
 Acceptance:
 
 - An agent is reusable configuration, not a separate runtime implementation.
-- A preset can select tools, sandbox policy, memory access, and model preferences.
+- A preset can select tools, sandbox policy, memory access, budget, and model preferences.
 - Rules can trigger or guard actions through the same policy pipeline.
+- Budgets enforce token and cost limits through the hook pipeline.
+- Permissions control tool/sandbox/MCP access through the policy pipeline.
+- Budgets and permissions are per-project or per-agent, not per-user (ADR 0008).
 
 ## Project Reshape
 
@@ -470,6 +526,8 @@ harness/src/
     SandboxPolicy.ts
     Agent.ts
     Rule.ts
+    Budget.ts
+    Permission.ts
 
   application/
     ports/
@@ -492,6 +550,8 @@ harness/src/
         ApprovalPort.ts
         MemoryStorePort.ts
         EventTransportPort.ts
+        BudgetPort.ts
+        PermissionPort.ts
     services/
       SessionContextService.ts
       ToolExecutionService.ts
@@ -523,6 +583,7 @@ harness/src/
       InMemorySessionRepositoryAdapter.ts
       InMemoryEventLogAdapter.ts
       MockAgentRuntimeAdapter.ts
+      OpenAiAgentRuntimeAdapter.ts
       ReplayAgentRuntimeAdapter.ts
       LocalToolProviderAdapter.ts
       McpToolGatewayAdapter.ts
@@ -581,15 +642,17 @@ libs/contracts/src/
 
 The recommended order is:
 
-1. Stage 1: Session and Event Core.
-2. Stage 2: Tool Registry and Staged Execution.
-3. Stage 3: Fail-Closed Sandbox Ladder.
-4. Stage 4: Internal Hooks.
-5. Stage 5: Keyless Replay Testing.
-6. Stage 6: Plugin Readiness.
-7. Stage 7: Agent Presets and Rules.
+1. Stage 1: Session and Event Core. ✅
+2. Stage 2: Tool Registry and Staged Execution. ✅
+3. Stage 3: Real Model Provider.
+4. Stage 4: Fail-Closed Sandbox Ladder.
+5. Stage 5: Internal Hooks.
+6. Stage 6: Keyless Replay Testing.
+7. Stage 7: Plugin Readiness.
+8. Stage 8: Agent Presets, Rules, Budgets, and Permissions.
 
-Stages 4 and 5 can overlap once the tool pipeline and event log are stable.
+Stages 5 and 6 can overlap once the tool pipeline and event log are stable.
+Stage 3 must complete before Stage 4: the sandbox is built around tool calls, and the tool call shapes need to be validated against a real model first.
 
 ## Definition of Done for Each Stage
 
