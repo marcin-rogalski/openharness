@@ -5,8 +5,7 @@ export default class SessionContextService {
 	deriveContext(events: SessionEvent[]): ModelContextMessage[] {
 		return events
 			.filter(
-				(event) =>
-					event.visibility === 'model' || event.visibility === 'both',
+				(event) => event.visibility === 'model' || event.visibility === 'both',
 			)
 			.flatMap((event): ModelContextMessage[] => {
 				switch (event.type) {

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
+import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
+import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
@@ -82,5 +84,21 @@ describe('composeUsecases', () => {
 				restartRequired: true,
 			},
 		)
+	})
+
+	it('builds the approve tool call usecase', async () => {
+		const usecases = composeUsecases(
+			await composeDriven(createConfigRepository(validConfig)),
+		)
+
+		expect(usecases.approveToolCall).toBeInstanceOf(ApproveToolCallUsecase)
+	})
+
+	it('builds the deny tool call usecase', async () => {
+		const usecases = composeUsecases(
+			await composeDriven(createConfigRepository(validConfig)),
+		)
+
+		expect(usecases.denyToolCall).toBeInstanceOf(DenyToolCallUsecase)
 	})
 })

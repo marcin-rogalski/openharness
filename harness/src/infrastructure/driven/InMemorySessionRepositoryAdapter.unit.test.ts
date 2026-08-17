@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import InMemorySessionRepositoryAdapter from './InMemorySessionRepositoryAdapter'
 import type { Session } from '@/domain/Session'
+import InMemorySessionRepositoryAdapter from './InMemorySessionRepositoryAdapter'
 
 describe('InMemorySessionRepositoryAdapter', () => {
 	it('returns a stored session', async () => {

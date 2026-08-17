@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { HarnessConfig } from '@/domain/Config'
+import ApproveToolCallEndpoint from '@/infrastructure/driving/ApproveToolCallEndpoint'
+import DenyToolCallEndpoint from '@/infrastructure/driving/DenyToolCallEndpoint'
 import GetConfigEndpoint from '@/infrastructure/driving/GetConfigEndpoint'
 import HealthEndpoint from '@/infrastructure/driving/HealthEndpoint'
 import ListProjectsEndpoint from '@/infrastructure/driving/ListProjectsEndpoint'
@@ -74,7 +76,7 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints).toHaveLength(5)
+		expect(endpoints).toHaveLength(7)
 		expect(endpoints[3]).toBeInstanceOf(GetConfigEndpoint)
 		expect(endpoints[3].toInfo()).toMatchObject({
 			method: 'GET',
@@ -84,6 +86,27 @@ describe('composeDriving', () => {
 		expect(endpoints[4].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/config',
+		})
+	})
+
+	it('builds the tool call endpoints', async () => {
+		const configRepository = {
+			load: vi.fn().mockResolvedValue(validConfig),
+			save: vi.fn(),
+		} as ConfigRepositoryPort
+		const endpoints = composeDriving(
+			composeUsecases(await composeDriven(configRepository)),
+		)
+
+		expect(endpoints[5]).toBeInstanceOf(ApproveToolCallEndpoint)
+		expect(endpoints[5].toInfo()).toMatchObject({
+			method: 'POST',
+			path: '/api/tool-calls/:toolCallId/approve',
+		})
+		expect(endpoints[6]).toBeInstanceOf(DenyToolCallEndpoint)
+		expect(endpoints[6].toInfo()).toMatchObject({
+			method: 'POST',
+			path: '/api/tool-calls/:toolCallId/deny',
 		})
 	})
 })

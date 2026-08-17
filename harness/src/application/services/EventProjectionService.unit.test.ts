@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import EventProjectionService from './EventProjectionService'
 import type { SessionEvent } from '@/domain/SessionEvent'
+import EventProjectionService from './EventProjectionService'
 
 function createEvent(overrides: Partial<SessionEvent> = {}): SessionEvent {
 	return {
@@ -50,9 +50,7 @@ describe('EventProjectionService', () => {
 				actor: 'agent',
 				payload: {
 					thinking: 'Let me think',
-					toolCalls: [
-						{ tool: 'read', input: 'file.txt', output: 'content' },
-					],
+					toolCalls: [{ tool: 'read', input: 'file.txt', output: 'content' }],
 					response: 'Done',
 				},
 			}),

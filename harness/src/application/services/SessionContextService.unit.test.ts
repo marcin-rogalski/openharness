@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import SessionContextService from './SessionContextService'
 import type { SessionEvent } from '@/domain/SessionEvent'
+import SessionContextService from './SessionContextService'
 
 function createEvent(overrides: Partial<SessionEvent> = {}): SessionEvent {
 	return {

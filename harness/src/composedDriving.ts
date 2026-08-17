@@ -1,6 +1,8 @@
 // Driving adapters — call INTO the app
 // Takes usecase ports, returns driving adapters.
 
+import ApproveToolCallEndpoint from '@/infrastructure/driving/ApproveToolCallEndpoint'
+import DenyToolCallEndpoint from '@/infrastructure/driving/DenyToolCallEndpoint'
 import GetConfigEndpoint from '@/infrastructure/driving/GetConfigEndpoint'
 import HealthEndpoint from '@/infrastructure/driving/HealthEndpoint'
 import ListProjectsEndpoint from '@/infrastructure/driving/ListProjectsEndpoint'
@@ -17,5 +19,7 @@ export default function composeDriving(usecases: Usecases) {
 		new SendProjectMessageEndpoint(usecases.sendProjectMessage),
 		new GetConfigEndpoint(usecases.getConfig),
 		new UpdateConfigEndpoint(usecases.updateConfig),
+		new ApproveToolCallEndpoint(usecases.approveToolCall),
+		new DenyToolCallEndpoint(usecases.denyToolCall),
 	]
 }

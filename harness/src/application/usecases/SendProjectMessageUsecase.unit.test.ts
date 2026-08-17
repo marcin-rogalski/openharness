@@ -3,9 +3,9 @@ import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntime
 import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import type { SessionRepositoryPort } from '@/application/ports/adapters/SessionRepositoryPort'
+import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
-import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import SendProjectMessageUsecase from './SendProjectMessageUsecase'
 
 function createProjectRepository(project: { id: string } | null) {
@@ -21,12 +21,10 @@ function createProjectRepository(project: { id: string } | null) {
 function createSessionRepository(existing: Session | null = null) {
 	const saved: Session[] = existing ? [existing] : []
 	return {
-		findById: async (id: string) =>
-			saved.find((s) => s.id === id) ?? null,
+		findById: async (id: string) => saved.find((s) => s.id === id) ?? null,
 		findActiveByProjectId: async (projectId: string) =>
-			saved.find(
-				(s) => s.projectId === projectId && s.status === 'active',
-			) ?? null,
+			saved.find((s) => s.projectId === projectId && s.status === 'active') ??
+			null,
 		save: async (session: Session) => {
 			saved.push(session)
 		},

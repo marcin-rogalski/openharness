@@ -7,8 +7,7 @@ import type {
 export default class MockAgentRuntimeAdapter implements AgentRuntimePort {
 	async handle(request: AgentRuntimeRequest): Promise<AgentRuntimeResponse> {
 		const lastMessage = request.context[request.context.length - 1]
-		const content =
-			lastMessage?.role === 'user' ? lastMessage.content : ''
+		const content = lastMessage?.role === 'user' ? lastMessage.content : ''
 
 		return {
 			thinking: `Thinking about: ${content}`,

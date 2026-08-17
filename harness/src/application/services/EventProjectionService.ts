@@ -16,9 +16,7 @@ export default class EventProjectionService {
 					]
 				case 'model_output_received': {
 					const entries: AgentTimelineEntry[] = []
-					const thinking = event.payload.thinking as
-						| string
-						| undefined
+					const thinking = event.payload.thinking as string | undefined
 					if (thinking) {
 						entries.push({
 							type: 'agent_thinking',
@@ -27,11 +25,10 @@ export default class EventProjectionService {
 							text: thinking,
 						})
 					}
-					const toolCalls = (
+					const toolCalls =
 						(event.payload.toolCalls as
 							| { tool: string; input: string; output: string }[]
 							| undefined) ?? []
-					)
 					for (const toolCall of toolCalls) {
 						entries.push({
 							type: 'agent_tool_call',

@@ -9,9 +9,9 @@ import type {
 } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import { SendProjectMessageInputSchema } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import SessionContextService from '@/application/services/SessionContextService'
+import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
-import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 
 export default class SendProjectMessageUsecase
 	implements SendProjectMessageUseCasePort

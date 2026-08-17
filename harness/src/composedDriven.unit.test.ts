@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
+import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
+import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
+import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 import composeDriven from './composedDriven'
 
@@ -23,5 +26,18 @@ describe('composeDriven', () => {
 			id: 'project-1',
 			name: 'OpenHarness',
 		})
+	})
+
+	it('builds the tool adapters', async () => {
+		const configRepository = {
+			load: vi.fn(),
+			save: vi.fn(),
+		} as ConfigRepositoryPort
+		const driven = await composeDriven(configRepository)
+
+		expect(driven.toolRegistry).toBeInstanceOf(LocalToolProviderAdapter)
+		expect(driven.toolExecutor).toBeInstanceOf(LocalToolProviderAdapter)
+		expect(driven.policy).toBeInstanceOf(AllowAllPolicyAdapter)
+		expect(driven.approval).toBeInstanceOf(ManualApprovalAdapter)
 	})
 })

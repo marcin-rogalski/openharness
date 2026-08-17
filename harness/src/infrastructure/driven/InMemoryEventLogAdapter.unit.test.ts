@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import InMemoryEventLogAdapter from './InMemoryEventLogAdapter'
 import type { SessionEvent } from '@/domain/SessionEvent'
+import InMemoryEventLogAdapter from './InMemoryEventLogAdapter'
 
 function createEvent(overrides: Partial<SessionEvent> = {}): SessionEvent {
 	return {

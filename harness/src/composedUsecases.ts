@@ -1,10 +1,14 @@
 // Usecases — one business operation each
 // Takes driven adapters, returns usecase ports.
 
+import type { ApproveToolCallUseCasePort } from '@/application/ports/usecases/ApproveToolCallUseCasePort'
+import type { DenyToolCallUseCasePort } from '@/application/ports/usecases/DenyToolCallUseCasePort'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
 import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
+import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
+import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
@@ -18,6 +22,8 @@ export default function composeUsecases(driven: Driven): {
 	sendProjectMessage: SendProjectMessageUseCasePort
 	getConfig: GetConfigUseCasePort
 	updateConfig: UpdateConfigUseCasePort
+	approveToolCall: ApproveToolCallUseCasePort
+	denyToolCall: DenyToolCallUseCasePort
 } {
 	return {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
@@ -29,5 +35,7 @@ export default function composeUsecases(driven: Driven): {
 		),
 		getConfig: new GetConfigUsecase(driven.configRepository),
 		updateConfig: new UpdateConfigUsecase(driven.configRepository),
+		approveToolCall: new ApproveToolCallUsecase(driven.approval),
+		denyToolCall: new DenyToolCallUsecase(driven.approval),
 	}
 }
