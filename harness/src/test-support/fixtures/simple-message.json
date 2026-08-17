@@ -1,0 +1,11 @@
+{
+	"name": "simple-message",
+	"description": "Basic message with a simple text response",
+	"turns": [
+		{
+			"thinking": null,
+			"toolCalls": [],
+			"response": "Hello! How can I help you today?"
+		}
+	]
+}

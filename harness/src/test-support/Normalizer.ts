@@ -6,7 +6,6 @@ const TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/
 export interface NormalizedEvent {
 	id: string
 	timestamp: string
-	[key: string]: unknown
 }
 
 export function normalizeId(id: string, index: number): string {
@@ -33,6 +32,19 @@ export function normalizeEvent<T extends NormalizedEvent>(
 	}
 	if (normalized.timestamp) {
 		normalized.timestamp = normalizeTimestamp(normalized.timestamp)
+	}
+	const record = normalized as Record<string, unknown>
+	if (
+		typeof record.sessionId === 'string' &&
+		UUID_PATTERN.test(record.sessionId)
+	) {
+		record.sessionId = 'session-normalized'
+	}
+	if (
+		typeof record.projectId === 'string' &&
+		UUID_PATTERN.test(record.projectId)
+	) {
+		record.projectId = 'project-normalized'
 	}
 	return normalized
 }

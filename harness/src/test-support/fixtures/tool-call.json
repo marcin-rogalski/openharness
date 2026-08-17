@@ -1,0 +1,17 @@
+{
+	"name": "tool-call",
+	"description": "Message where the model responds with a tool call",
+	"turns": [
+		{
+			"thinking": "I need to read the file to answer this question.",
+			"toolCalls": [
+				{
+					"tool": "read_file",
+					"input": "path=src/index.ts",
+					"output": "export const main = () => {}"
+				}
+			],
+			"response": "I've read the file. The main function is a no-op."
+		}
+	]
+}

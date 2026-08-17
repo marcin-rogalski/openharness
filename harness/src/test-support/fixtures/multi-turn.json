@@ -1,0 +1,16 @@
+{
+	"name": "multi-turn",
+	"description": "Two consecutive messages in the same session",
+	"turns": [
+		{
+			"thinking": null,
+			"toolCalls": [],
+			"response": "First response."
+		},
+		{
+			"thinking": "The user is asking a follow-up.",
+			"toolCalls": [],
+			"response": "Second response with more detail."
+		}
+	]
+}
