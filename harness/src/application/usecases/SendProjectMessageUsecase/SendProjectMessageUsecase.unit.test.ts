@@ -6,7 +6,7 @@ import type { SessionRepositoryPort } from '@/application/ports/adapters/Session
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
-import SendProjectMessageUsecase from './SendProjectMessageUsecase'
+import SendProjectMessageUsecase from '.'
 
 function createProjectRepository(project: { id: string } | null) {
 	return {
