@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest'
-import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntimePort'
+import { describe, expect, it, vi } from 'vitest'
 import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import type { SessionRepositoryPort } from '@/application/ports/adapters/SessionRepositoryPort'
+import type { AgentLoopResult } from '@/application/services/AgentLoopService'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
@@ -42,35 +42,27 @@ function createEventLog() {
 	} as EventLogPort & { _getEvents: () => SessionEvent[] }
 }
 
-function createAgentRuntime() {
+function createAgentLoopMock(result?: Partial<AgentLoopResult>) {
 	return {
-		handle: async ({
-			context,
-		}: {
-			sessionId: string
-			projectId: string
-			context: { role: string; content: string }[]
-		}) => {
-			const lastUser = [...context].reverse().find((m) => m.role === 'user')
-			return {
-				thinking: `Thinking about: ${lastUser?.content ?? ''}`,
-				toolCalls: [
-					{ tool: 'mock_tool', input: lastUser?.content ?? '', output: 'ok' },
-				],
-				response: `Mock response to: ${lastUser?.content ?? ''}`,
-			}
-		},
-	} as AgentRuntimePort
+		run: vi.fn().mockResolvedValue({
+			status: 'completed',
+			steps: 1,
+			reason: null,
+			error: null,
+			...result,
+		}),
+	}
 }
 
 describe('SendProjectMessageUsecase', () => {
 	it('creates a session and returns user and model events', async () => {
 		const eventLog = createEventLog()
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository({ id: 'project-1' }),
 			createSessionRepository(),
 			eventLog,
-			createAgentRuntime(),
+			agentLoop as never,
 		)
 
 		const result = await usecase.handle({
@@ -79,23 +71,13 @@ describe('SendProjectMessageUsecase', () => {
 		})
 
 		expect(result.sessionId).toBeTypeOf('string')
-		expect(result.events.map((e) => e.type)).toEqual([
-			'session_created',
-			'user_message',
-			'model_output_received',
-		])
-		expect(result.events[1]).toMatchObject({
-			projectId: 'project-1',
-			actor: 'user',
-			payload: { content: 'Hello' },
-		})
-		expect(result.events[2]).toMatchObject({
-			projectId: 'project-1',
-			actor: 'agent',
-			payload: {
-				response: 'Mock response to: Hello',
-			},
-		})
+		expect(agentLoop.run).toHaveBeenCalledOnce()
+		const runCall = vi.mocked(agentLoop.run).mock.calls[0][0]
+		expect(runCall.sessionId).toBe(result.sessionId)
+		expect(runCall.projectId).toBe('project-1')
+		expect(runCall.turnId).toBeTypeOf('string')
+		expect(result.events.map((e) => e.type)).toContain('session_created')
+		expect(result.events.map((e) => e.type)).toContain('user_message')
 	})
 
 	it('reuses an existing active session', async () => {
@@ -106,11 +88,12 @@ describe('SendProjectMessageUsecase', () => {
 			createdAt: '2026-01-01T00:00:00Z',
 			endedAt: null,
 		}
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository({ id: 'project-1' }),
 			createSessionRepository(existingSession),
 			createEventLog(),
-			createAgentRuntime(),
+			agentLoop as never,
 		)
 
 		const result = await usecase.handle({
@@ -119,18 +102,16 @@ describe('SendProjectMessageUsecase', () => {
 		})
 
 		expect(result.sessionId).toBe('session-1')
-		expect(result.events.map((e) => e.type)).toEqual([
-			'user_message',
-			'model_output_received',
-		])
+		expect(agentLoop.run).toHaveBeenCalledOnce()
 	})
 
 	it('trims message content before handling', async () => {
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository({ id: 'project-1' }),
 			createSessionRepository(),
 			createEventLog(),
-			createAgentRuntime(),
+			agentLoop as never,
 		)
 
 		const result = await usecase.handle({
@@ -143,11 +124,12 @@ describe('SendProjectMessageUsecase', () => {
 	})
 
 	it('rejects empty content', async () => {
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository({ id: 'project-1' }),
 			createSessionRepository(),
 			createEventLog(),
-			createAgentRuntime(),
+			agentLoop as never,
 		)
 
 		await expect(
@@ -156,11 +138,12 @@ describe('SendProjectMessageUsecase', () => {
 	})
 
 	it('throws when the project does not exist', async () => {
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository(null),
 			createSessionRepository(),
 			createEventLog(),
-			createAgentRuntime(),
+			agentLoop as never,
 		)
 
 		await expect(
@@ -168,68 +151,24 @@ describe('SendProjectMessageUsecase', () => {
 		).rejects.toThrow(ProjectNotFoundError)
 	})
 
-	it('derives context from prior events for the agent runtime', async () => {
-		const existingSession: Session = {
-			id: 'session-1',
-			projectId: 'project-1',
-			status: 'active',
-			createdAt: '2026-01-01T00:00:00Z',
-			endedAt: null,
-		}
-		const priorEvents: SessionEvent[] = [
-			{
-				id: 'e1',
-				sessionId: 'session-1',
-				projectId: 'project-1',
-				turnId: null,
-				stepId: null,
-				timestamp: '2026-01-01T00:00:01Z',
-				actor: 'user',
-				type: 'user_message',
-				payload: { content: 'Previous message' },
-				visibility: 'both',
-			},
-		]
-		const eventLog = {
-			append: async (event: SessionEvent) => {
-				priorEvents.push(event)
-			},
-			listBySession: async () => priorEvents,
-		} as EventLogPort
-
-		let receivedContext: { role: string; content: string }[] = []
-		const agentRuntime = {
-			handle: async ({
-				context,
-			}: {
-				sessionId: string
-				projectId: string
-				context: { role: string; content: string }[]
-			}) => {
-				receivedContext = context
-				return {
-					thinking: null,
-					toolCalls: [],
-					response: 'ok',
-				}
-			},
-		} as AgentRuntimePort
-
+	it('passes the turnId and config to the agent loop', async () => {
+		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
 			createProjectRepository({ id: 'project-1' }),
-			createSessionRepository(existingSession),
-			eventLog,
-			agentRuntime,
+			createSessionRepository(),
+			createEventLog(),
+			agentLoop as never,
 		)
 
 		await usecase.handle({
 			projectId: 'project-1',
-			content: 'New message',
+			content: 'Hello',
 		})
 
-		expect(receivedContext).toEqual([
-			{ role: 'user', content: 'Previous message' },
-			{ role: 'user', content: 'New message' },
-		])
+		const runCall = vi.mocked(agentLoop.run).mock.calls[0][0]
+		expect(runCall.config).toEqual({
+			maxSteps: 20,
+			maxParallelTools: 10,
+		})
 	})
 })

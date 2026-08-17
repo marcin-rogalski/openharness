@@ -1,4 +1,3 @@
-import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntimePort'
 import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import type { SessionRepositoryPort } from '@/application/ports/adapters/SessionRepositoryPort'
@@ -8,24 +7,21 @@ import type {
 	SendProjectMessageUseCasePort,
 } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import { SendProjectMessageInputSchema } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
+import { DEFAULT_AGENT_LOOP_CONFIG } from '@/domain/AgentLoopConfig'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
-import SessionContextService from './SessionContextService'
+import type AgentLoopService from '@/application/services/AgentLoopService'
 
 export default class SendProjectMessageUsecase
 	implements SendProjectMessageUseCasePort
 {
-	private readonly contextService: SessionContextService
-
 	constructor(
 		private readonly projects: ProjectRepositoryPort,
 		private readonly sessions: SessionRepositoryPort,
 		private readonly eventLog: EventLogPort,
-		private readonly agentRuntime: AgentRuntimePort,
-	) {
-		this.contextService = new SessionContextService()
-	}
+		private readonly agentLoop: AgentLoopService,
+	) {}
 
 	async handle(
 		input: SendProjectMessageInput,
@@ -56,35 +52,16 @@ export default class SendProjectMessageUsecase
 		await this.eventLog.append(userEvent)
 		newEvents.push(userEvent)
 
-		const allEvents = await this.eventLog.listBySession(session.id)
-		const context = this.contextService.deriveContext(allEvents)
-
-		const agentResponse = await this.agentRuntime.handle({
+		const turnId = crypto.randomUUID()
+		await this.agentLoop.run({
 			sessionId: session.id,
 			projectId: project.id,
-			context,
+			turnId,
+			config: DEFAULT_AGENT_LOOP_CONFIG,
 		})
 
-		const modelEvent: SessionEvent = {
-			id: crypto.randomUUID(),
-			sessionId: session.id,
-			projectId: project.id,
-			turnId: null,
-			stepId: null,
-			timestamp: new Date().toISOString(),
-			actor: 'agent',
-			type: 'model_output_received',
-			payload: {
-				thinking: agentResponse.thinking,
-				toolCalls: agentResponse.toolCalls,
-				response: agentResponse.response,
-			},
-			visibility: 'both',
-		}
-		await this.eventLog.append(modelEvent)
-		newEvents.push(modelEvent)
-
-		return { sessionId: session.id, events: newEvents }
+		const allEvents = await this.eventLog.listBySession(session.id)
+		return { sessionId: session.id, events: allEvents }
 	}
 
 	private async resolveSession(

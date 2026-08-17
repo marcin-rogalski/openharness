@@ -1,9 +1,16 @@
+import AgentLoopService from '@/application/services/AgentLoopService'
+import HookRegistryService from '@/application/services/HookRegistryService'
+import ToolExecutionService from '@/application/services/ToolExecutionService'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
 import type { Project } from '@/domain/Project'
 import type { SessionEvent } from '@/domain/SessionEvent'
+import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
 import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
 import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySessionRepositoryAdapter'
+import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
+import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
+import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import type { ReplayFixture } from './FixtureSchema'
 import { normalizeEvents } from './Normalizer'
 import ReplayAgentRuntimeAdapter from './ReplayAgentRuntimeAdapter'
@@ -34,11 +41,30 @@ export default class ReplayRunner {
 		this.agentRuntime = new ReplayAgentRuntimeAdapter(fixture)
 		const projects = new InMemoryProjectRepositoryAdapter([project])
 		const sessions = new InMemorySessionRepositoryAdapter()
+
+		const toolProvider = new LocalToolProviderAdapter()
+		const toolExecution = new ToolExecutionService(
+			toolProvider,
+			toolProvider,
+			new AllowAllPolicyAdapter(),
+			new ManualApprovalAdapter(),
+			new LogicalPathSandboxAdapter({ level: 'workspace-write', workspaceRoot: '.' }),
+		)
+		const hooks = new HookRegistryService()
+
+		const agentLoop = new AgentLoopService(
+			this.agentRuntime,
+			toolExecution,
+			toolProvider,
+			this.eventLog,
+			hooks,
+		)
+
 		this.usecase = new SendProjectMessageUsecase(
 			projects,
 			sessions,
 			this.eventLog,
-			this.agentRuntime,
+			agentLoop,
 		)
 	}
 

@@ -41,8 +41,10 @@ beforeEach(() => {
 							content: 'Mock response',
 							tool_calls: [],
 						},
+						finish_reason: 'stop',
 					},
 				],
+				usage: { prompt_tokens: 10, completion_tokens: 5 },
 			}),
 			{ status: 200, headers: { 'Content-Type': 'application/json' } },
 		),
@@ -83,7 +85,10 @@ describe('composeUsecases', () => {
 		expect(result.events.map((entry) => entry.type)).toEqual([
 			'session_created',
 			'user_message',
+			'turn_started',
+			'step_started',
 			'model_output_received',
+			'turn_ended',
 		])
 	})
 

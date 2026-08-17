@@ -7,10 +7,14 @@
 			"toolCalls": [
 				{
 					"tool": "read_file",
-					"input": "path=src/index.ts",
-					"output": "export const main = () => {}"
+					"input": "path=src/index.ts"
 				}
 			],
+			"response": ""
+		},
+		{
+			"thinking": null,
+			"toolCalls": [],
 			"response": "I've read the file. The main function is a no-op."
 		}
 	]

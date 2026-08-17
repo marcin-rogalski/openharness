@@ -50,6 +50,79 @@ describe('SessionContextService', () => {
 		expect(context).toEqual([{ role: 'assistant', content: 'Hi there' }])
 	})
 
+	it('includes toolCalls in assistant message when present', () => {
+		const service = new SessionContextService()
+		const events = [
+			createEvent({
+				type: 'model_output_received',
+				actor: 'agent',
+				payload: {
+					response: '',
+					toolCalls: [
+						{ id: 'call-1', tool: 'read_file', input: '{"path":"/tmp"}' },
+					],
+				},
+				visibility: 'both',
+			}),
+		]
+
+		const context = service.deriveContext(events)
+
+		expect(context).toEqual([
+			{
+				role: 'assistant',
+				content: '',
+				toolCalls: [{ id: 'call-1', tool: 'read_file', input: '{"path":"/tmp"}' }],
+			},
+		])
+	})
+
+	it('derives tool results from tool_result_produced events', () => {
+		const service = new SessionContextService()
+		const events = [
+			createEvent({
+				type: 'tool_result_produced',
+				actor: 'agent',
+				payload: {
+					toolCallId: 'call-1',
+					status: 'success',
+					output: 'file contents',
+					error: null,
+				},
+				visibility: 'both',
+			}),
+		]
+
+		const context = service.deriveContext(events)
+
+		expect(context).toEqual([
+			{ role: 'tool', toolCallId: 'call-1', content: '"file contents"' },
+		])
+	})
+
+	it('derives tool error results from tool_result_produced events', () => {
+		const service = new SessionContextService()
+		const events = [
+			createEvent({
+				type: 'tool_result_produced',
+				actor: 'agent',
+				payload: {
+					toolCallId: 'call-2',
+					status: 'error',
+					output: null,
+					error: 'File not found',
+				},
+				visibility: 'both',
+			}),
+		]
+
+		const context = service.deriveContext(events)
+
+		expect(context).toEqual([
+			{ role: 'tool', toolCallId: 'call-2', content: 'Error: File not found' },
+		])
+	})
+
 	it('excludes events with user-only visibility', () => {
 		const service = new SessionContextService()
 		const events = [

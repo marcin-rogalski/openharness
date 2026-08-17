@@ -46,6 +46,18 @@ export function normalizeEvent<T extends NormalizedEvent>(
 	) {
 		record.projectId = 'project-normalized'
 	}
+	if (
+		typeof record.turnId === 'string' &&
+		UUID_PATTERN.test(record.turnId)
+	) {
+		record.turnId = 'turn-normalized'
+	}
+	if (
+		typeof record.stepId === 'string' &&
+		UUID_PATTERN.test(record.stepId)
+	) {
+		record.stepId = 'step-normalized'
+	}
 	return normalized
 }
 

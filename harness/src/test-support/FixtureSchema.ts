@@ -1,9 +1,10 @@
 import { z } from 'zod'
 
 export const ReplayToolCallSchema = z.object({
+	id: z.string().optional(),
 	tool: z.string(),
 	input: z.string(),
-	output: z.string(),
+	output: z.string().optional(),
 })
 
 export const ReplayTurnSchema = z.object({

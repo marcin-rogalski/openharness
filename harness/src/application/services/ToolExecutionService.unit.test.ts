@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ApprovalPort } from '@/application/ports/adapters/ApprovalPort'
 import type {
 	PolicyDecision,
@@ -194,5 +194,108 @@ describe('ToolExecutionService', () => {
 		expect(result.status).toBe('error')
 		expect(result.error).toBe('tool crashed')
 		expect(result.frozen).toBe(true)
+	})
+
+	it('checks sandbox access for tools with sandboxLevel workspace-write', async () => {
+		const registry = {
+			listTools: async () => [],
+			getTool: async () => ({
+				id: 'write_tool',
+				name: 'Write',
+				description: 'writes files',
+				inputSchema: {},
+				sandboxLevel: 'workspace-write' as const,
+			}),
+		} as ToolRegistryPort
+
+		const sandbox = {
+			checkAccess: vi.fn().mockResolvedValue({ allowed: true, reason: null }),
+		} as unknown as SandboxPort
+
+		const service = new ToolExecutionService(
+			registry,
+			createExecutor(),
+			createPolicy('allow'),
+			createApproval(),
+			sandbox,
+		)
+
+		await service.execute(
+			createCall({ toolId: 'write_tool', input: { path: '/tmp/test.txt' } }),
+		)
+
+		expect(sandbox.checkAccess).toHaveBeenCalledWith(
+			'workspace-write',
+			'/tmp/test.txt',
+		)
+	})
+
+	it('denies when sandbox rejects access', async () => {
+		const registry = {
+			listTools: async () => [],
+			getTool: async () => ({
+				id: 'write_tool',
+				name: 'Write',
+				description: 'writes files',
+				inputSchema: {},
+				sandboxLevel: 'workspace-write' as const,
+			}),
+		} as ToolRegistryPort
+
+		const sandbox = {
+			checkAccess: vi.fn().mockResolvedValue({
+				allowed: false,
+				reason: 'outside workspace',
+			}),
+		} as unknown as SandboxPort
+
+		const service = new ToolExecutionService(
+			registry,
+			createExecutor(),
+			createPolicy('allow'),
+			createApproval(),
+			sandbox,
+		)
+
+		const result = await service.execute(
+			createCall({ toolId: 'write_tool', input: { filePath: '/etc/passwd' } }),
+		)
+
+		expect(result.status).toBe('error')
+		expect(result.error).toBe('Sandbox denied: outside workspace')
+	})
+
+	it('extracts path from file key', async () => {
+		const registry = {
+			listTools: async () => [],
+			getTool: async () => ({
+				id: 'read_tool',
+				name: 'Read',
+				description: 'reads files',
+				inputSchema: {},
+				sandboxLevel: 'read-only' as const,
+			}),
+		} as ToolRegistryPort
+
+		const sandbox = {
+			checkAccess: vi.fn().mockResolvedValue({ allowed: true, reason: null }),
+		} as unknown as SandboxPort
+
+		const service = new ToolExecutionService(
+			registry,
+			createExecutor(),
+			createPolicy('allow'),
+			createApproval(),
+			sandbox,
+		)
+
+		await service.execute(
+			createCall({ toolId: 'read_tool', input: { file: '/tmp/data.json' } }),
+		)
+
+		expect(sandbox.checkAccess).toHaveBeenCalledWith(
+			'read-only',
+			'/tmp/data.json',
+		)
 	})
 })
