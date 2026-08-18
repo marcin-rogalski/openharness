@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
-import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
+import PermissionPolicyAdapter from '@/infrastructure/driven/PermissionPolicyAdapter'
 import composeDriven from './composedDriven'
 
 describe('composeDriven', () => {
@@ -37,7 +37,7 @@ describe('composeDriven', () => {
 
 		expect(driven.toolRegistry).toBeInstanceOf(LocalToolProviderAdapter)
 		expect(driven.toolExecutor).toBeInstanceOf(LocalToolProviderAdapter)
-		expect(driven.policy).toBeInstanceOf(AllowAllPolicyAdapter)
+		expect(driven.policy).toBeInstanceOf(PermissionPolicyAdapter)
 		expect(driven.approval).toBeInstanceOf(ManualApprovalAdapter)
 	})
 })

@@ -1,10 +1,10 @@
+import type { HookPort } from '@/application/ports/adapters/HookPort'
+import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
+import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import AgentLoopService from '@/application/services/AgentLoopService'
 import HookRegistryService from '@/application/services/HookRegistryService'
 import ToolExecutionService from '@/application/services/ToolExecutionService'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
-import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
-import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
-import type { HookPort } from '@/application/ports/adapters/HookPort'
 import type { Project } from '@/domain/Project'
 import type { SessionEvent } from '@/domain/SessionEvent'
 import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
@@ -62,7 +62,11 @@ export default class ReplayRunner {
 			executor,
 			policy,
 			new ManualApprovalAdapter(),
-			new LogicalPathSandboxAdapter({ level: 'workspace-write', workspaceRoot: '.' }),
+			new LogicalPathSandboxAdapter({
+				level: 'workspace-write',
+				workspaceRoot: '.',
+			}),
+			this.eventLog,
 		)
 		const hooks = new HookRegistryService()
 		for (const hook of options?.hooks ?? []) {

@@ -46,6 +46,7 @@ export default function composeUsecases(driven: Driven): {
 		driven.policy,
 		driven.approval,
 		driven.sandbox,
+		driven.eventLog,
 	)
 
 	const hooks = new HookRegistryService()

@@ -4,7 +4,6 @@
 import { join } from 'node:path'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { Project } from '@/domain/Project'
-import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
 import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
 import InMemoryEventPublisherAdapter from '@/infrastructure/driven/InMemoryEventPublisherAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
@@ -12,6 +11,7 @@ import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderA
 import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
 import LowDbAgentRepositoryAdapter from '@/infrastructure/driven/LowDbAgentRepositoryAdapter'
 import LowDbBudgetRepositoryAdapter from '@/infrastructure/driven/LowDbBudgetRepositoryAdapter'
+import LowDbPermissionAdapter from '@/infrastructure/driven/LowDbPermissionAdapter'
 import LowDbPermissionRepositoryAdapter from '@/infrastructure/driven/LowDbPermissionRepositoryAdapter'
 import LowDbRuleRepositoryAdapter from '@/infrastructure/driven/LowDbRuleRepositoryAdapter'
 import LowDbSessionRepositoryAdapter from '@/infrastructure/driven/LowDbSessionRepositoryAdapter'
@@ -19,6 +19,7 @@ import LowDbStore from '@/infrastructure/driven/LowDbStore'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 import OpenAiAgentRuntimeAdapter from '@/infrastructure/driven/OpenAiAgentRuntimeAdapter'
+import PermissionPolicyAdapter from '@/infrastructure/driven/PermissionPolicyAdapter'
 import PublishingEventLogAdapter from '@/infrastructure/driven/PublishingEventLogAdapter'
 
 const defaultProjects: Project[] = [
@@ -75,7 +76,9 @@ export default async function composeDriven(
 		configRepository,
 		toolRegistry: toolProvider,
 		toolExecutor: toolProvider,
-		policy: new AllowAllPolicyAdapter(),
+		policy: new PermissionPolicyAdapter(
+			new LowDbPermissionAdapter(new LowDbPermissionRepositoryAdapter(store)),
+		),
 		approval: new ManualApprovalAdapter(),
 		sandbox: new LogicalPathSandboxAdapter({
 			level: 'workspace-write',

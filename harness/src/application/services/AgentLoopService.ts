@@ -1,4 +1,7 @@
-import type { AgentRuntimePort } from '@/application/ports/adapters/AgentRuntimePort'
+import type {
+	AgentRuntimePort,
+	AgentRuntimeResponse,
+} from '@/application/ports/adapters/AgentRuntimePort'
 import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import type { AgentLoopConfig } from '@/domain/AgentLoopConfig'
@@ -6,9 +9,9 @@ import type { SessionEvent } from '@/domain/SessionEvent'
 import type { ToolCall } from '@/domain/ToolCall'
 import type { ToolResult } from '@/domain/ToolResult'
 import { executeBoundedParallel } from './BoundedParallelPool'
+import type HookRegistryService from './HookRegistryService'
 import SessionContextService from './SessionContextService'
 import type ToolExecutionService from './ToolExecutionService'
-import type HookRegistryService from './HookRegistryService'
 
 export type AgentLoopStatus =
 	| 'completed'
@@ -63,7 +66,12 @@ export default class AgentLoopService {
 					'turn_ended',
 					{ reason: 'aborted' },
 				)
-				return { status: 'aborted', steps: step, reason: 'aborted', error: null }
+				return {
+					status: 'aborted',
+					steps: step,
+					reason: 'aborted',
+					error: null,
+				}
 			}
 
 			const stepId = crypto.randomUUID()
@@ -113,7 +121,7 @@ export default class AgentLoopService {
 			const context = this.contextService.deriveContext(events)
 			const tools = await this.toolRegistry.listTools()
 
-			let response
+			let response: AgentRuntimeResponse
 			try {
 				response = await this.agentRuntime.handle({
 					sessionId,
@@ -141,7 +149,12 @@ export default class AgentLoopService {
 					'turn_ended',
 					{ reason: 'error' },
 				)
-				return { status: 'error', steps: step + 1, reason: null, error: message }
+				return {
+					status: 'error',
+					steps: step + 1,
+					reason: null,
+					error: message,
+				}
 			}
 
 			await this.appendEvent(
@@ -168,7 +181,12 @@ export default class AgentLoopService {
 					'turn_ended',
 					{ reason: 'max_tokens' },
 				)
-				return { status: 'max_tokens', steps: step + 1, reason: null, error: null }
+				return {
+					status: 'max_tokens',
+					steps: step + 1,
+					reason: null,
+					error: null,
+				}
 			}
 
 			if (response.finishReason === 'stop' || response.toolCalls.length === 0) {
@@ -180,7 +198,12 @@ export default class AgentLoopService {
 					'turn_ended',
 					{ reason: 'completed' },
 				)
-				return { status: 'completed', steps: step + 1, reason: null, error: null }
+				return {
+					status: 'completed',
+					steps: step + 1,
+					reason: null,
+					error: null,
+				}
 			}
 
 			const domainCalls: ToolCall[] = response.toolCalls.map((tc) => ({
@@ -212,7 +235,11 @@ export default class AgentLoopService {
 				config.maxParallelTools,
 				async (call) => {
 					try {
-						return await this.toolExecution.execute(call)
+						return await this.toolExecution.execute(call, {
+							projectId,
+							turnId,
+							stepId,
+						})
 					} catch (error) {
 						const message =
 							error instanceof Error ? error.message : String(error)

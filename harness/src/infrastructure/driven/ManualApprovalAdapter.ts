@@ -5,17 +5,22 @@ import type {
 import type { ToolCall } from '@/domain/ToolCall'
 
 export default class ManualApprovalAdapter implements ApprovalPort {
-	private readonly decisions = new Map<string, ApprovalDecision>()
+	private readonly pending = new Map<
+		string,
+		(decision: ApprovalDecision) => void
+	>()
 
 	async requestApproval(call: ToolCall): Promise<ApprovalDecision> {
-		const decision = this.decisions.get(call.id)
-		if (!decision) {
-			return 'denied'
-		}
-		return decision
+		return new Promise<ApprovalDecision>((resolve) => {
+			this.pending.set(call.id, resolve)
+		})
 	}
 
 	decide(toolCallId: string, decision: ApprovalDecision): void {
-		this.decisions.set(toolCallId, decision)
+		const resolve = this.pending.get(toolCallId)
+		if (resolve) {
+			this.pending.delete(toolCallId)
+			resolve(decision)
+		}
 	}
 }

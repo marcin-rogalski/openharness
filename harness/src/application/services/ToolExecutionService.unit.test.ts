@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ApprovalPort } from '@/application/ports/adapters/ApprovalPort'
+import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type {
 	PolicyDecision,
 	PolicyPort,
@@ -7,9 +8,17 @@ import type {
 import type { SandboxPort } from '@/application/ports/adapters/SandboxPort'
 import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutorPort'
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
+import type { SessionEvent } from '@/domain/SessionEvent'
 import type { ToolCall } from '@/domain/ToolCall'
 import { ToolNotFoundError } from '@/domain/ToolNotFoundError'
+import type { ToolExecutionContext } from './ToolExecutionService'
 import ToolExecutionService from './ToolExecutionService'
+
+const context: ToolExecutionContext = {
+	projectId: 'project-1',
+	turnId: 'turn-1',
+	stepId: 'step-1',
+}
 
 function createCall(overrides: Partial<ToolCall> = {}): ToolCall {
 	return {
@@ -73,17 +82,32 @@ function createSandbox(allowed = true) {
 	} as SandboxPort
 }
 
+function createEventLog() {
+	const events: SessionEvent[] = []
+	return {
+		events,
+		port: {
+			append: async (e: SessionEvent) => {
+				events.push(e)
+			},
+			listBySession: async () => events,
+		} as EventLogPort,
+	}
+}
+
 describe('ToolExecutionService', () => {
 	it('executes a tool call successfully when policy allows', async () => {
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			createExecutor({ data: 42 }),
 			createPolicy('allow'),
 			createApproval(),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(result.status).toBe('success')
 		expect(result.output).toEqual({ data: 42 })
@@ -93,15 +117,17 @@ describe('ToolExecutionService', () => {
 	})
 
 	it('returns a frozen error when policy denies', async () => {
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			createExecutor(),
 			createPolicy('deny'),
 			createApproval(),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(result.status).toBe('error')
 		expect(result.error).toBe('Tool call denied by policy')
@@ -110,60 +136,80 @@ describe('ToolExecutionService', () => {
 	})
 
 	it('requests approval when policy requires it', async () => {
+		const { events, port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			createExecutor({ approved: true }),
 			createPolicy('require_approval'),
 			createApproval('approved'),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(result.status).toBe('success')
 		expect(result.output).toEqual({ approved: true })
+		expect(events).toHaveLength(2)
+		expect(events[0].type).toBe('approval_requested')
+		expect(events[1].type).toBe('approval_decided')
+		expect(events[1].payload).toEqual({
+			toolCallId: 'call-1',
+			decision: 'approved',
+		})
 	})
 
 	it('returns a frozen error when approval is denied', async () => {
+		const { events, port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			createExecutor(),
 			createPolicy('require_approval'),
 			createApproval('denied'),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(result.status).toBe('error')
 		expect(result.error).toBe('Tool call denied by approval')
 		expect(result.frozen).toBe(true)
+		expect(events).toHaveLength(2)
+		expect(events[1].payload).toEqual({
+			toolCallId: 'call-1',
+			decision: 'denied',
+		})
 	})
 
 	it('throws ToolNotFoundError for unknown tools', async () => {
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry('other_tool'),
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
 			createSandbox(),
+			eventLog,
 		)
 
 		await expect(
-			service.execute(createCall({ toolId: 'mock_tool' })),
+			service.execute(createCall({ toolId: 'mock_tool' }), context),
 		).rejects.toThrow(ToolNotFoundError)
 	})
 
 	it('produces a frozen result that cannot be mutated', async () => {
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(() => {
 			;(result as { output: unknown }).output = 'hacked'
@@ -181,15 +227,17 @@ describe('ToolExecutionService', () => {
 			}),
 		} as ToolExecutorPort
 
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			createRegistry(),
 			executor,
 			createPolicy('allow'),
 			createApproval(),
 			createSandbox(),
+			eventLog,
 		)
 
-		const result = await service.execute(createCall())
+		const result = await service.execute(createCall(), context)
 
 		expect(result.status).toBe('error')
 		expect(result.error).toBe('tool crashed')
@@ -212,16 +260,19 @@ describe('ToolExecutionService', () => {
 			checkAccess: vi.fn().mockResolvedValue({ allowed: true, reason: null }),
 		} as unknown as SandboxPort
 
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			registry,
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
 			sandbox,
+			eventLog,
 		)
 
 		await service.execute(
 			createCall({ toolId: 'write_tool', input: { path: '/tmp/test.txt' } }),
+			context,
 		)
 
 		expect(sandbox.checkAccess).toHaveBeenCalledWith(
@@ -249,16 +300,19 @@ describe('ToolExecutionService', () => {
 			}),
 		} as unknown as SandboxPort
 
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			registry,
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
 			sandbox,
+			eventLog,
 		)
 
 		const result = await service.execute(
 			createCall({ toolId: 'write_tool', input: { filePath: '/etc/passwd' } }),
+			context,
 		)
 
 		expect(result.status).toBe('error')
@@ -281,16 +335,19 @@ describe('ToolExecutionService', () => {
 			checkAccess: vi.fn().mockResolvedValue({ allowed: true, reason: null }),
 		} as unknown as SandboxPort
 
+		const { port: eventLog } = createEventLog()
 		const service = new ToolExecutionService(
 			registry,
 			createExecutor(),
 			createPolicy('allow'),
 			createApproval(),
 			sandbox,
+			eventLog,
 		)
 
 		await service.execute(
 			createCall({ toolId: 'read_tool', input: { file: '/tmp/data.json' } }),
+			context,
 		)
 
 		expect(sandbox.checkAccess).toHaveBeenCalledWith(

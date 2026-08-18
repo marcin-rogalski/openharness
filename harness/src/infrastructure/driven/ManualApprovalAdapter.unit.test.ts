@@ -12,26 +12,38 @@ const call: ToolCall = {
 }
 
 describe('ManualApprovalAdapter', () => {
-	it('denies by default when no decision has been made', async () => {
+	it('blocks until decide() resolves with approved', async () => {
 		const adapter = new ManualApprovalAdapter()
-		const decision = await adapter.requestApproval(call)
-
-		expect(decision).toBe('denied')
-	})
-
-	it('returns the recorded decision', async () => {
-		const adapter = new ManualApprovalAdapter()
+		const promise = adapter.requestApproval(call)
 		adapter.decide('call-1', 'approved')
-		const decision = await adapter.requestApproval(call)
+		const decision = await promise
 
 		expect(decision).toBe('approved')
 	})
 
-	it('records denial decisions', async () => {
+	it('blocks until decide() resolves with denied', async () => {
 		const adapter = new ManualApprovalAdapter()
+		const promise = adapter.requestApproval(call)
 		adapter.decide('call-1', 'denied')
-		const decision = await adapter.requestApproval(call)
+		const decision = await promise
 
 		expect(decision).toBe('denied')
+	})
+
+	it('resolves multiple pending requests independently', async () => {
+		const adapter = new ManualApprovalAdapter()
+		const call2: ToolCall = { ...call, id: 'call-2' }
+		const p1 = adapter.requestApproval(call)
+		const p2 = adapter.requestApproval(call2)
+		adapter.decide('call-2', 'approved')
+		adapter.decide('call-1', 'denied')
+
+		expect(await p1).toBe('denied')
+		expect(await p2).toBe('approved')
+	})
+
+	it('ignores decide() for unknown toolCallId', () => {
+		const adapter = new ManualApprovalAdapter()
+		expect(() => adapter.decide('unknown', 'approved')).not.toThrow()
 	})
 })
