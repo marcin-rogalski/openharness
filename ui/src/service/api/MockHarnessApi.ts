@@ -1,6 +1,14 @@
 import { mockState } from '../mock'
 import type { SessionEvent } from '../schema'
-import type { HarnessApi, HarnessConfig, UpdateConfigInput } from './HarnessApi'
+import type {
+	Agent,
+	Budget,
+	HarnessApi,
+	HarnessConfig,
+	Permission,
+	Rule,
+	UpdateConfigInput,
+} from './HarnessApi'
 
 export function createMockHarnessApi(): HarnessApi {
 	let config: HarnessConfig = {
@@ -16,6 +24,11 @@ export function createMockHarnessApi(): HarnessApi {
 		defaultModel: 'openai/gpt-4o-mini',
 	}
 	let sessionId: string | null = null
+
+	const agents: Agent[] = []
+	const rules: Rule[] = []
+	const budgets: Budget[] = []
+	const permissions: Permission[] = []
 
 	return {
 		async health() {
@@ -79,6 +92,58 @@ export function createMockHarnessApi(): HarnessApi {
 				...input,
 			}
 			return { config, restartRequired }
+		},
+		async listAgents() {
+			return agents
+		},
+		async createAgent(agent) {
+			agents.push(agent)
+			return agent
+		},
+		async updateAgent(id, agent) {
+			const index = agents.findIndex((a) => a.id === id)
+			if (index === -1) throw new Error(`Agent not found: ${id}`)
+			agents[index] = agent
+			return agent
+		},
+		async listRules() {
+			return rules
+		},
+		async createRule(rule) {
+			rules.push(rule)
+			return rule
+		},
+		async updateRule(id, rule) {
+			const index = rules.findIndex((r) => r.id === id)
+			if (index === -1) throw new Error(`Rule not found: ${id}`)
+			rules[index] = rule
+			return rule
+		},
+		async listBudgets() {
+			return budgets
+		},
+		async createBudget(budget) {
+			budgets.push(budget)
+			return budget
+		},
+		async updateBudget(id, budget) {
+			const index = budgets.findIndex((b) => b.id === id)
+			if (index === -1) throw new Error(`Budget not found: ${id}`)
+			budgets[index] = budget
+			return budget
+		},
+		async listPermissions() {
+			return permissions
+		},
+		async createPermission(permission) {
+			permissions.push(permission)
+			return permission
+		},
+		async updatePermission(id, permission) {
+			const index = permissions.findIndex((p) => p.id === id)
+			if (index === -1) throw new Error(`Permission not found: ${id}`)
+			permissions[index] = permission
+			return permission
 		},
 	}
 }

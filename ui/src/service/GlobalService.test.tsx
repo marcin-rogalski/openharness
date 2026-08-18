@@ -124,6 +124,18 @@ describe('GlobalService', () => {
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
+			listAgents: vi.fn().mockResolvedValue([]),
+			createAgent: vi.fn(),
+			updateAgent: vi.fn(),
+			listRules: vi.fn().mockResolvedValue([]),
+			createRule: vi.fn(),
+			updateRule: vi.fn(),
+			listBudgets: vi.fn().mockResolvedValue([]),
+			createBudget: vi.fn(),
+			updateBudget: vi.fn(),
+			listPermissions: vi.fn().mockResolvedValue([]),
+			createPermission: vi.fn(),
+			updatePermission: vi.fn(),
 		}
 
 		render(
@@ -143,6 +155,18 @@ describe('GlobalService', () => {
 			sendMessage: vi.fn().mockRejectedValue(new Error('send boom')),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
+			listAgents: vi.fn().mockResolvedValue([]),
+			createAgent: vi.fn(),
+			updateAgent: vi.fn(),
+			listRules: vi.fn().mockResolvedValue([]),
+			createRule: vi.fn(),
+			updateRule: vi.fn(),
+			listBudgets: vi.fn().mockResolvedValue([]),
+			createBudget: vi.fn(),
+			updateBudget: vi.fn(),
+			listPermissions: vi.fn().mockResolvedValue([]),
+			createPermission: vi.fn(),
+			updatePermission: vi.fn(),
 		}
 		const state: GlobalState = {
 			...mockState,
@@ -168,6 +192,18 @@ describe('GlobalService', () => {
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
+			listAgents: vi.fn().mockResolvedValue([]),
+			createAgent: vi.fn(),
+			updateAgent: vi.fn(),
+			listRules: vi.fn().mockResolvedValue([]),
+			createRule: vi.fn(),
+			updateRule: vi.fn(),
+			listBudgets: vi.fn().mockResolvedValue([]),
+			createBudget: vi.fn(),
+			updateBudget: vi.fn(),
+			listPermissions: vi.fn().mockResolvedValue([]),
+			createPermission: vi.fn(),
+			updatePermission: vi.fn(),
 		}
 
 		render(
@@ -196,6 +232,18 @@ describe('GlobalService', () => {
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
+			listAgents: vi.fn().mockResolvedValue([]),
+			createAgent: vi.fn(),
+			updateAgent: vi.fn(),
+			listRules: vi.fn().mockResolvedValue([]),
+			createRule: vi.fn(),
+			updateRule: vi.fn(),
+			listBudgets: vi.fn().mockResolvedValue([]),
+			createBudget: vi.fn(),
+			updateBudget: vi.fn(),
+			listPermissions: vi.fn().mockResolvedValue([]),
+			createPermission: vi.fn(),
+			updatePermission: vi.fn(),
 		}
 
 		const { unmount } = render(

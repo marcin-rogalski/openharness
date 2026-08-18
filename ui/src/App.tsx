@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ConfigurationDialog from '@/components/ConfigurationDialog'
 import MessagePanel from '@/components/MessagePanel'
 import SettingsDialog from '@/components/SettingsDialog'
 import type { HarnessApi } from '@/service/api/HarnessApi'
@@ -19,6 +20,7 @@ export default function App({
 }: AppProps = {}) {
 	const { state, actions } = useGlobal()
 	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [configOpen, setConfigOpen] = useState(false)
 	const selectedProject = state.projects.find(
 		(project) => project.id === state.selectedProjectId,
 	)
@@ -28,14 +30,24 @@ export default function App({
 			<header className={styles.header}>
 				<h1 className={styles.title}>OpenHarness</h1>
 				{api ? (
-					<button
-						type="button"
-						className={styles.button}
-						data-testid="open-settings"
-						onClick={() => setSettingsOpen(true)}
-					>
-						Settings
-					</button>
+					<div className={styles.headerActions}>
+						<button
+							type="button"
+							className={styles.button}
+							data-testid="open-configuration"
+							onClick={() => setConfigOpen(true)}
+						>
+							Configure
+						</button>
+						<button
+							type="button"
+							className={styles.button}
+							data-testid="open-settings"
+							onClick={() => setSettingsOpen(true)}
+						>
+							Settings
+						</button>
+					</div>
 				) : null}
 			</header>
 			<p className={styles.description}>Projects</p>
@@ -89,6 +101,10 @@ export default function App({
 					onUiConfigChange={onUiConfigChange}
 					onClose={() => setSettingsOpen(false)}
 				/>
+			) : null}
+
+			{configOpen && api ? (
+				<ConfigurationDialog api={api} onClose={() => setConfigOpen(false)} />
 			) : null}
 		</main>
 	)

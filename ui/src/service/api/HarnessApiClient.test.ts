@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { Agent, Budget, Permission, Rule } from './HarnessApi'
 import { createHarnessApiClient } from './HarnessApiClient'
 
 function jsonResponse(status: number, body: unknown) {
@@ -200,5 +201,283 @@ describe('createHarnessApiClient', () => {
 		await expect(api.listProjects()).rejects.toThrow(
 			'Request failed with status 503',
 		)
+	})
+
+	it('lists agents', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				agents: [
+					{
+						id: 'a1',
+						name: 'Test',
+						role: 'coder',
+						description: '',
+						tools: [],
+						mcpAccess: [],
+						memoryAccess: false,
+						sandboxPolicy: { level: 'workspace-write', workspaceRoot: '.' },
+						budget: {
+							id: 'b1',
+							name: 'default',
+							tokenLimitPerTurn: null,
+							tokenLimitPerSession: null,
+							costLimitPerTurn: null,
+							costLimitPerSession: null,
+							enforcementPoint: 'pre_request',
+						},
+						modelPreferences: { provider: 'openai', model: 'gpt-4o-mini' },
+					},
+				],
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const agents = await api.listAgents()
+		expect(agents).toHaveLength(1)
+		expect(agents[0].name).toBe('Test')
+	})
+
+	it('creates an agent', async () => {
+		const agent: Agent = {
+			id: 'a1',
+			name: 'New',
+			role: 'coder',
+			description: '',
+			tools: [],
+			mcpAccess: [],
+			memoryAccess: false,
+			sandboxPolicy: { level: 'workspace-write', workspaceRoot: '.' },
+			budget: {
+				id: 'b1',
+				name: 'default',
+				tokenLimitPerTurn: null,
+				tokenLimitPerSession: null,
+				costLimitPerTurn: null,
+				costLimitPerSession: null,
+				enforcementPoint: 'pre_request',
+			},
+			modelPreferences: { provider: 'openai', model: 'gpt-4o-mini' },
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { agent }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.createAgent(agent)
+		expect(result.id).toBe('a1')
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/agents',
+			expect.objectContaining({ method: 'POST' }),
+		)
+	})
+
+	it('updates an agent', async () => {
+		const agent: Agent = {
+			id: 'a1',
+			name: 'Updated',
+			role: 'coder',
+			description: '',
+			tools: [],
+			mcpAccess: [],
+			memoryAccess: false,
+			sandboxPolicy: { level: 'workspace-write', workspaceRoot: '.' },
+			budget: {
+				id: 'b1',
+				name: 'default',
+				tokenLimitPerTurn: null,
+				tokenLimitPerSession: null,
+				costLimitPerTurn: null,
+				costLimitPerSession: null,
+				enforcementPoint: 'pre_request',
+			},
+			modelPreferences: { provider: 'openai', model: 'gpt-4o-mini' },
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { agent }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.updateAgent('a1', agent)
+		expect(result.name).toBe('Updated')
+	})
+
+	it('lists rules', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				rules: [
+					{
+						id: 'r1',
+						name: 'Test Rule',
+						when: 'tool_call',
+						condition: {},
+						action: 'deny',
+						guard: null,
+					},
+				],
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const rules = await api.listRules()
+		expect(rules).toHaveLength(1)
+		expect(rules[0].name).toBe('Test Rule')
+	})
+
+	it('creates a rule', async () => {
+		const rule: Rule = {
+			id: 'r1',
+			name: 'New Rule',
+			when: 'tool_call',
+			condition: {},
+			action: 'deny',
+			guard: null,
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { rule }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.createRule(rule)
+		expect(result.id).toBe('r1')
+	})
+
+	it('updates a rule', async () => {
+		const rule: Rule = {
+			id: 'r1',
+			name: 'Updated',
+			when: 'tool_call',
+			condition: {},
+			action: 'allow',
+			guard: null,
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { rule }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.updateRule('r1', rule)
+		expect(result.name).toBe('Updated')
+	})
+
+	it('lists budgets', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				budgets: [
+					{
+						id: 'b1',
+						name: 'Default',
+						tokenLimitPerTurn: 1000,
+						tokenLimitPerSession: null,
+						costLimitPerTurn: null,
+						costLimitPerSession: null,
+						enforcementPoint: 'pre_request',
+					},
+				],
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const budgets = await api.listBudgets()
+		expect(budgets).toHaveLength(1)
+		expect(budgets[0].tokenLimitPerTurn).toBe(1000)
+	})
+
+	it('creates a budget', async () => {
+		const budget: Budget = {
+			id: 'b1',
+			name: 'New',
+			tokenLimitPerTurn: 500,
+			tokenLimitPerSession: null,
+			costLimitPerTurn: null,
+			costLimitPerSession: null,
+			enforcementPoint: 'pre_request',
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { budget }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.createBudget(budget)
+		expect(result.id).toBe('b1')
+	})
+
+	it('updates a budget', async () => {
+		const budget: Budget = {
+			id: 'b1',
+			name: 'Updated',
+			tokenLimitPerTurn: 2000,
+			tokenLimitPerSession: null,
+			costLimitPerTurn: null,
+			costLimitPerSession: null,
+			enforcementPoint: 'pre_request',
+		}
+		const fetchMock = vi.fn().mockResolvedValue(jsonResponse(200, { budget }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.updateBudget('b1', budget)
+		expect(result.name).toBe('Updated')
+	})
+
+	it('lists permissions', async () => {
+		const fetchMock = vi.fn().mockResolvedValue(
+			jsonResponse(200, {
+				permissions: [
+					{
+						id: 'p1',
+						name: 'Test',
+						resource: 'tool',
+						resourceId: 'bash',
+						action: 'allow',
+						scope: 'project',
+						scopeId: null,
+					},
+				],
+			}),
+		)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const permissions = await api.listPermissions()
+		expect(permissions).toHaveLength(1)
+		expect(permissions[0].resource).toBe('tool')
+	})
+
+	it('creates a permission', async () => {
+		const permission: Permission = {
+			id: 'p1',
+			name: 'New',
+			resource: 'tool',
+			resourceId: 'bash',
+			action: 'allow',
+			scope: 'project',
+			scopeId: null,
+		}
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(jsonResponse(200, { permission }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.createPermission(permission)
+		expect(result.id).toBe('p1')
+	})
+
+	it('updates a permission', async () => {
+		const permission: Permission = {
+			id: 'p1',
+			name: 'Updated',
+			resource: 'tool',
+			resourceId: 'bash',
+			action: 'deny',
+			scope: 'project',
+			scopeId: null,
+		}
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(jsonResponse(200, { permission }))
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		const result = await api.updatePermission('p1', permission)
+		expect(result.name).toBe('Updated')
 	})
 })

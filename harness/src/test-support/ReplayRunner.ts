@@ -2,6 +2,9 @@ import AgentLoopService from '@/application/services/AgentLoopService'
 import HookRegistryService from '@/application/services/HookRegistryService'
 import ToolExecutionService from '@/application/services/ToolExecutionService'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
+import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
+import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
+import type { HookPort } from '@/application/ports/adapters/HookPort'
 import type { Project } from '@/domain/Project'
 import type { SessionEvent } from '@/domain/SessionEvent'
 import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
@@ -27,6 +30,13 @@ export interface ReplayDiff {
 	unexpected: SessionEvent[]
 }
 
+export interface ReplayRunnerOptions {
+	policy?: PolicyPort
+	hooks?: HookPort[]
+	toolRegistry?: ToolRegistryPort
+	executor?: import('@/application/ports/adapters/ToolExecutorPort').ToolExecutorPort
+}
+
 export default class ReplayRunner {
 	private readonly usecase: SendProjectMessageUsecase
 	private readonly eventLog: InMemoryEventLogAdapter
@@ -36,6 +46,7 @@ export default class ReplayRunner {
 	constructor(
 		private readonly fixture: ReplayFixture,
 		private readonly project: Project,
+		options?: ReplayRunnerOptions,
 	) {
 		this.eventLog = new InMemoryEventLogAdapter()
 		this.agentRuntime = new ReplayAgentRuntimeAdapter(fixture)
@@ -43,19 +54,25 @@ export default class ReplayRunner {
 		const sessions = new InMemorySessionRepositoryAdapter()
 
 		const toolProvider = new LocalToolProviderAdapter()
+		const toolRegistry = options?.toolRegistry ?? toolProvider
+		const executor = options?.executor ?? toolProvider
+		const policy = options?.policy ?? new AllowAllPolicyAdapter()
 		const toolExecution = new ToolExecutionService(
-			toolProvider,
-			toolProvider,
-			new AllowAllPolicyAdapter(),
+			toolRegistry,
+			executor,
+			policy,
 			new ManualApprovalAdapter(),
 			new LogicalPathSandboxAdapter({ level: 'workspace-write', workspaceRoot: '.' }),
 		)
 		const hooks = new HookRegistryService()
+		for (const hook of options?.hooks ?? []) {
+			hooks.register(hook)
+		}
 
 		const agentLoop = new AgentLoopService(
 			this.agentRuntime,
 			toolExecution,
-			toolProvider,
+			toolRegistry,
 			this.eventLog,
 			hooks,
 		)

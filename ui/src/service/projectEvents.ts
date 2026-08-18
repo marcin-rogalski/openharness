@@ -1,4 +1,4 @@
-import type { SessionEvent, TimelineEntry } from '../schema'
+import type { SessionEvent, TimelineEntry } from './schema'
 
 export function projectEventsToTimeline(
 	events: SessionEvent[],

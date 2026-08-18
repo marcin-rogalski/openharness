@@ -88,6 +88,18 @@ describe('App', () => {
 					},
 					restartRequired: input.port !== undefined && input.port !== 3000,
 				}),
+				listAgents: async () => [],
+				createAgent: async (a) => a,
+				updateAgent: async (_id, a) => a,
+				listRules: async () => [],
+				createRule: async (r) => r,
+				updateRule: async (_id, r) => r,
+				listBudgets: async () => [],
+				createBudget: async (b) => b,
+				updateBudget: async (_id, b) => b,
+				listPermissions: async () => [],
+				createPermission: async (p) => p,
+				updatePermission: async (_id, p) => p,
 			},
 		)
 
