@@ -6,6 +6,7 @@
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsup --watch",
+		"dev:server": "tsx src/index.ts",
 		"test": "vitest",
 		"test:run": "vitest run",
 		"coverage": "vitest run --coverage",
