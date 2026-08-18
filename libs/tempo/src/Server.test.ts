@@ -395,4 +395,47 @@ describe('Server', () => {
 			await corsServer.stop()
 		}
 	})
+
+	it('should support raw streaming handlers via registerRaw', async () => {
+		const rawServer = new Server({ port: 0 })
+		rawServer.registerRaw('GET', '/stream', (req, res) => {
+			res.writeHead(200, {
+				'Content-Type': 'text/event-stream',
+				'Cache-Control': 'no-cache',
+				Connection: 'keep-alive',
+			})
+			res.write(`data: ${JSON.stringify({ hello: 'world' })}\n\n`)
+			res.end()
+		})
+		const rawPort = await rawServer.start()
+
+		try {
+			const response = await fetch(`http://localhost:${rawPort}/stream`)
+			expect(response.status).toBe(200)
+			expect(response.headers.get('content-type')).toBe('text/event-stream')
+			const text = await response.text()
+			expect(text).toBe(`data: ${JSON.stringify({ hello: 'world' })}\n\n`)
+		} finally {
+			await rawServer.stop()
+		}
+	})
+
+	it('should pass route params to raw handlers', async () => {
+		const rawServer = new Server({ port: 0 })
+		rawServer.registerRaw('GET', '/sessions/:sessionId/events', (req, res, params) => {
+			res.writeHead(200, { 'Content-Type': 'text/plain' })
+			res.end(params.sessionId)
+		})
+		const rawPort = await rawServer.start()
+
+		try {
+			const response = await fetch(
+				`http://localhost:${rawPort}/sessions/abc-123/events`,
+			)
+			expect(response.status).toBe(200)
+			expect(await response.text()).toBe('abc-123')
+		} finally {
+			await rawServer.stop()
+		}
+	})
 })

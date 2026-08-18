@@ -4,7 +4,7 @@ import {
 	type ServerResponse,
 } from 'node:http'
 import Router from 'find-my-way'
-import type { EndpointInfo } from './types'
+import type { EndpointInfo, HttpMethod } from './types'
 import { ValidationError } from './types'
 
 export interface CorsOptions {
@@ -44,6 +44,12 @@ export interface RegisterableEndpoint {
 		headers: unknown,
 	) => Promise<unknown>
 }
+
+export type RawHandler = (
+	req: IncomingMessage,
+	res: ServerResponse,
+	params: Record<string, string>,
+) => void | Promise<void>
 
 function parseQuery(url: string | undefined): Record<string, string> {
 	if (!url) {
@@ -185,6 +191,26 @@ export default class Server {
 			},
 		)
 		this._endpoints.push(info)
+		return this
+	}
+
+	/**
+	 * Register a raw handler that gets direct access to the HTTP request/response.
+	 * Use for streaming endpoints (SSE, WebSocket upgrades, file downloads).
+	 */
+	registerRaw(method: HttpMethod, path: string, handler: RawHandler): this {
+		this.router.on(method, path, (req, res, params) => {
+			const routeParams: Record<string, string> = {}
+			if (params) {
+				for (const [key, value] of Object.entries(params)) {
+					if (value !== undefined) {
+						routeParams[key] = value
+					}
+				}
+			}
+			handler(req, res, routeParams)
+		})
+		this._endpoints.push({ method, path, schemas: {} })
 		return this
 	}
 

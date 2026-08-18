@@ -4,6 +4,7 @@ import composeDriven from './composedDriven'
 import composeDriving from './composedDriving'
 import composeUsecases from './composedUsecases'
 import { bootstrapConfig } from './infrastructure/driven/bootstrapConfig'
+import EventStreamEndpoint from './infrastructure/driving/EventStreamEndpoint'
 
 async function main() {
 	const { config, repository, configPath } = await bootstrapConfig()
@@ -18,6 +19,12 @@ async function main() {
 	for (const endpoint of driving) {
 		server.use(endpoint)
 	}
+
+	const eventStream = new EventStreamEndpoint(
+		driven.eventPublisher,
+		driven.eventLog,
+	)
+	eventStream.register(server)
 
 	const port = await server.start()
 	console.log(`Server running on port ${port}`)

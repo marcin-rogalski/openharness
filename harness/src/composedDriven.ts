@@ -6,6 +6,7 @@ import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRe
 import type { Project } from '@/domain/Project'
 import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
 import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
+import InMemoryEventPublisherAdapter from '@/infrastructure/driven/InMemoryEventPublisherAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
 import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
@@ -18,6 +19,7 @@ import LowDbStore from '@/infrastructure/driven/LowDbStore'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 import OpenAiAgentRuntimeAdapter from '@/infrastructure/driven/OpenAiAgentRuntimeAdapter'
+import PublishingEventLogAdapter from '@/infrastructure/driven/PublishingEventLogAdapter'
 
 const defaultProjects: Project[] = [
 	{ id: 'project-1', name: 'OpenHarness', status: 'running' },
@@ -58,10 +60,17 @@ export default async function composeDriven(
 	const store = new LowDbStore(join(workspaceRoot, 'data.json'))
 	await store.init()
 
+	const eventPublisher = new InMemoryEventPublisherAdapter()
+	const eventLog = new PublishingEventLogAdapter(
+		new InMemoryEventLogAdapter(),
+		eventPublisher,
+	)
+
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),
 		sessionRepository: new LowDbSessionRepositoryAdapter(store),
-		eventLog: new InMemoryEventLogAdapter(),
+		eventLog,
+		eventPublisher,
 		agentRuntime,
 		configRepository,
 		toolRegistry: toolProvider,
