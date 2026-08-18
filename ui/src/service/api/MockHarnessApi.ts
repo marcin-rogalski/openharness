@@ -93,6 +93,15 @@ export function createMockHarnessApi(): HarnessApi {
 			}
 			return { config, restartRequired }
 		},
+		async approveToolCall() {
+			return undefined
+		},
+		async denyToolCall() {
+			return undefined
+		},
+		subscribeToEvents() {
+			return () => {}
+		},
 		async listAgents() {
 			return agents
 		},

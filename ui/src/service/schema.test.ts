@@ -94,6 +94,7 @@ describe('GlobalStateSchema', () => {
 				sessionId: null,
 				timeline: [],
 				error: null,
+				pendingApproval: null,
 			}),
 		).toEqual({
 			projects: [],
@@ -101,6 +102,24 @@ describe('GlobalStateSchema', () => {
 			sessionId: null,
 			timeline: [],
 			error: null,
+			pendingApproval: null,
+		})
+	})
+
+	it('parses a state with a pending approval', () => {
+		expect(
+			GlobalStateSchema.parse({
+				projects: [],
+				selectedProjectId: null,
+				sessionId: null,
+				timeline: [],
+				error: null,
+				pendingApproval: { toolCallId: 'tc-1', tool: 'bash', input: 'ls' },
+			}),
+		).toHaveProperty('pendingApproval', {
+			toolCallId: 'tc-1',
+			tool: 'bash',
+			input: 'ls',
 		})
 	})
 
@@ -112,6 +131,7 @@ describe('GlobalStateSchema', () => {
 				sessionId: null,
 				timeline: [],
 				error: null,
+				pendingApproval: null,
 			}),
 		).toThrow()
 	})

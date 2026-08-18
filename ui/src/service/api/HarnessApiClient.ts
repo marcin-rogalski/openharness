@@ -1,5 +1,6 @@
 import { harnessApiSchema } from '@openharness/contracts'
 import { FetchClient } from '@openharness/fetch'
+import type { SessionEvent } from '../schema'
 import type { HarnessApi } from './HarnessApi'
 
 export function createHarnessApiClient(baseUrl = ''): HarnessApi {
@@ -26,6 +27,35 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 		},
 		async updateConfig(input) {
 			return client.request('updateConfig', { body: input })
+		},
+		async approveToolCall(toolCallId) {
+			await client.request('approveToolCall', {
+				params: { toolCallId },
+				body: { toolCallId },
+			})
+		},
+		async denyToolCall(toolCallId) {
+			await client.request('denyToolCall', {
+				params: { toolCallId },
+				body: { toolCallId },
+			})
+		},
+		subscribeToEvents(sessionId, onEvent) {
+			const url = `${baseUrl}/api/sessions/${sessionId}/events`
+			const source = new EventSource(url)
+
+			source.onmessage = (message) => {
+				try {
+					const event = JSON.parse(message.data) as SessionEvent
+					onEvent(event)
+				} catch {
+					// ignore malformed events
+				}
+			}
+
+			return () => {
+				source.close()
+			}
 		},
 		async listAgents() {
 			const payload = await client.request('listAgents')

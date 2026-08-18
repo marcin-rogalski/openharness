@@ -7,6 +7,12 @@ import { z } from 'zod'
 
 export { ProjectSchema, SessionEventSchema, TimelineEntrySchema }
 
+export const PendingApprovalSchema = z.object({
+	toolCallId: z.string().min(1),
+	tool: z.string(),
+	input: z.string(),
+})
+
 export const GlobalStateSchema = z
 	.object({
 		projects: z.array(ProjectSchema),
@@ -14,6 +20,7 @@ export const GlobalStateSchema = z
 		sessionId: z.string().nullable(),
 		timeline: z.array(TimelineEntrySchema),
 		error: z.string().nullable(),
+		pendingApproval: PendingApprovalSchema.nullable(),
 	})
 	.refine(
 		(state) =>
@@ -45,10 +52,18 @@ export const GlobalActionSchema = z.discriminatedUnion('type', [
 		type: z.literal('error/set'),
 		error: z.string().nullable(),
 	}),
+	z.object({
+		type: z.literal('approval/set'),
+		approval: PendingApprovalSchema,
+	}),
+	z.object({
+		type: z.literal('approval/clear'),
+	}),
 ])
 
 export type Project = z.infer<typeof ProjectSchema>
 export type SessionEvent = z.infer<typeof SessionEventSchema>
 export type TimelineEntry = z.infer<typeof TimelineEntrySchema>
+export type PendingApproval = z.infer<typeof PendingApprovalSchema>
 export type GlobalState = z.infer<typeof GlobalStateSchema>
 export type GlobalAction = z.infer<typeof GlobalActionSchema>

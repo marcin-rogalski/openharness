@@ -17,6 +17,8 @@ interface GlobalContextValue {
 		setProjects: (projects: Project[]) => void
 		selectProject: (projectId: string | null) => void
 		sendMessage: (content: string) => Promise<void>
+		approveToolCall: (toolCallId: string) => Promise<void>
+		denyToolCall: (toolCallId: string) => Promise<void>
 	}
 }
 
@@ -67,6 +69,34 @@ export function GlobalProvider({
 		}
 	}, [api])
 
+	useEffect(() => {
+		if (!state.sessionId) {
+			return
+		}
+
+		const unsubscribe = api.subscribeToEvents(state.sessionId, (event) => {
+			if (event.type === 'approval_requested') {
+				const payload = event.payload as {
+					toolCallId: string
+					tool: string
+					input: string
+				}
+				dispatch({
+					type: 'approval/set',
+					approval: {
+						toolCallId: payload.toolCallId,
+						tool: payload.tool,
+						input: payload.input,
+					},
+				})
+			} else if (event.type === 'approval_decided') {
+				dispatch({ type: 'approval/clear' })
+			}
+		})
+
+		return unsubscribe
+	}, [api, state.sessionId])
+
 	const value = useMemo<GlobalContextValue>(
 		() => ({
 			state,
@@ -96,6 +126,28 @@ export function GlobalProvider({
 						dispatch({
 							type: 'error/set',
 							error: getErrorMessage(error, 'Failed to send message'),
+						})
+					}
+				},
+				approveToolCall: async (toolCallId) => {
+					try {
+						await api.approveToolCall(toolCallId)
+						dispatch({ type: 'approval/clear' })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to approve tool call'),
+						})
+					}
+				},
+				denyToolCall: async (toolCallId) => {
+					try {
+						await api.denyToolCall(toolCallId)
+						dispatch({ type: 'approval/clear' })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to deny tool call'),
 						})
 					}
 				},

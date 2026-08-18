@@ -480,4 +480,99 @@ describe('createHarnessApiClient', () => {
 		const result = await api.updatePermission('p1', permission)
 		expect(result.name).toBe('Updated')
 	})
+
+	it('approves a tool call', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(
+				jsonResponse(200, { toolCallId: 'tc-1', approved: true }),
+			)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		await expect(api.approveToolCall('tc-1')).resolves.toBeUndefined()
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/tool-calls/tc-1/approve',
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({ toolCallId: 'tc-1' }),
+			}),
+		)
+	})
+
+	it('denies a tool call', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValue(
+				jsonResponse(200, { toolCallId: 'tc-1', denied: true }),
+			)
+		vi.stubGlobal('fetch', fetchMock)
+		const api = createHarnessApiClient()
+
+		await expect(api.denyToolCall('tc-1')).resolves.toBeUndefined()
+
+		expect(fetchMock).toHaveBeenCalledWith(
+			'/api/tool-calls/tc-1/deny',
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({ toolCallId: 'tc-1' }),
+			}),
+		)
+	})
+
+	it('subscribes to events and receives them', () => {
+		const events: unknown[] = []
+		const closeMock = vi.fn()
+		class MockEventSource {
+			close = closeMock
+			set onmessage(handler: (msg: MessageEvent) => void) {
+				handler({
+					data: JSON.stringify({
+						id: 'e1',
+						sessionId: 's1',
+						projectId: 'p1',
+						turnId: null,
+						stepId: null,
+						timestamp: '2025-01-01T00:00:00.000Z',
+						actor: 'system',
+						type: 'approval_requested',
+						payload: { toolCallId: 'tc-1', tool: 'bash', input: 'ls' },
+						visibility: 'user',
+					}),
+				} as MessageEvent)
+			}
+		}
+		vi.stubGlobal('EventSource', MockEventSource)
+
+		const api = createHarnessApiClient()
+		const unsubscribe = api.subscribeToEvents('s1', (event) => {
+			events.push(event)
+		})
+
+		expect(events).toHaveLength(1)
+		expect(events[0]).toMatchObject({ type: 'approval_requested' })
+
+		unsubscribe()
+		expect(closeMock).toHaveBeenCalled()
+	})
+
+	it('ignores malformed event data', () => {
+		const events: unknown[] = []
+		class MockEventSource {
+			close = vi.fn()
+			set onmessage(handler: (msg: MessageEvent) => void) {
+				handler({ data: 'not-json' } as MessageEvent)
+			}
+		}
+		vi.stubGlobal('EventSource', MockEventSource)
+
+		const api = createHarnessApiClient()
+		const unsubscribe = api.subscribeToEvents('s1', (event) => {
+			events.push(event)
+		})
+
+		expect(events).toHaveLength(0)
+		unsubscribe()
+	})
 })

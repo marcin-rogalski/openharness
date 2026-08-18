@@ -32,6 +32,12 @@ export interface HarnessApi {
 	sendMessage(projectId: string, content: string): Promise<SendMessageResult>
 	getConfig(): Promise<HarnessConfig>
 	updateConfig(input: UpdateConfigInput): Promise<UpdateConfigResult>
+	approveToolCall(toolCallId: string): Promise<void>
+	denyToolCall(toolCallId: string): Promise<void>
+	subscribeToEvents(
+		sessionId: string,
+		onEvent: (event: SessionEvent) => void,
+	): () => void
 	listAgents(): Promise<Agent[]>
 	createAgent(agent: Agent): Promise<Agent>
 	updateAgent(id: string, agent: Agent): Promise<Agent>

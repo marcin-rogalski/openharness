@@ -225,4 +225,24 @@ describe('createMockHarnessApi', () => {
 			'Permission not found: nope',
 		)
 	})
+
+	it('approves a tool call', async () => {
+		const api = createMockHarnessApi()
+
+		await expect(api.approveToolCall('tc-1')).resolves.toBeUndefined()
+	})
+
+	it('denies a tool call', async () => {
+		const api = createMockHarnessApi()
+
+		await expect(api.denyToolCall('tc-1')).resolves.toBeUndefined()
+	})
+
+	it('subscribes to events and returns an unsubscribe function', () => {
+		const api = createMockHarnessApi()
+
+		const unsubscribe = api.subscribeToEvents('s1', () => {})
+		expect(typeof unsubscribe).toBe('function')
+		unsubscribe()
+	})
 })

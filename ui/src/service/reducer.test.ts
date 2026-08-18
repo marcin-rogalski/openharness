@@ -11,6 +11,7 @@ const baseState: GlobalState = {
 	sessionId: null,
 	timeline: [],
 	error: null,
+	pendingApproval: null,
 }
 
 describe('globalReducer', () => {
@@ -93,6 +94,29 @@ describe('globalReducer', () => {
 			error: null,
 		})
 		expect(cleared.error).toBeNull()
+	})
+
+	it('sets a pending approval', () => {
+		const next = globalReducer(baseState, {
+			type: 'approval/set',
+			approval: { toolCallId: 'tc-1', tool: 'bash', input: 'ls' },
+		})
+
+		expect(next.pendingApproval).toEqual({
+			toolCallId: 'tc-1',
+			tool: 'bash',
+			input: 'ls',
+		})
+	})
+
+	it('clears a pending approval', () => {
+		const withApproval = globalReducer(baseState, {
+			type: 'approval/set',
+			approval: { toolCallId: 'tc-1', tool: 'bash', input: 'ls' },
+		})
+
+		const next = globalReducer(withApproval, { type: 'approval/clear' })
+		expect(next.pendingApproval).toBeNull()
 	})
 
 	it('rejects invalid actions', () => {

@@ -56,6 +56,7 @@ describe('App', () => {
 				sessionId: null,
 				timeline: [],
 				error: null,
+				pendingApproval: null,
 			},
 			{
 				health: async () => {},
@@ -88,6 +89,9 @@ describe('App', () => {
 					},
 					restartRequired: input.port !== undefined && input.port !== 3000,
 				}),
+				approveToolCall: async () => {},
+				denyToolCall: async () => {},
+				subscribeToEvents: () => () => {},
 				listAgents: async () => [],
 				createAgent: async (a) => a,
 				updateAgent: async (_id, a) => a,

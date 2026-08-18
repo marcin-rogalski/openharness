@@ -9,4 +9,5 @@ export const mockState: GlobalState = {
 	sessionId: null,
 	timeline: [],
 	error: null,
+	pendingApproval: null,
 }

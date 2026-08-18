@@ -51,5 +51,15 @@ export function globalReducer(
 				...state,
 				error: action.error,
 			}
+		case 'approval/set':
+			return {
+				...state,
+				pendingApproval: action.approval,
+			}
+		case 'approval/clear':
+			return {
+				...state,
+				pendingApproval: null,
+			}
 	}
 }

@@ -6,4 +6,5 @@ export const emptyState: GlobalState = {
 	sessionId: null,
 	timeline: [],
 	error: null,
+	pendingApproval: null,
 }

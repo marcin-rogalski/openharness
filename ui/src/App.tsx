@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ApprovalDialog from '@/components/ApprovalDialog'
 import ConfigurationDialog from '@/components/ConfigurationDialog'
 import MessagePanel from '@/components/MessagePanel'
 import SettingsDialog from '@/components/SettingsDialog'
@@ -93,6 +94,8 @@ export default function App({
 			</p>
 
 			<MessagePanel />
+
+			{api ? <ApprovalDialog /> : null}
 
 			{settingsOpen && api ? (
 				<SettingsDialog
