@@ -15,7 +15,8 @@
 	},
 	"dependencies": {
 		"@openharness/contracts": "0.1.0",
-		"@openharness/tempo": "0.1.0"
+		"@openharness/tempo": "0.1.0",
+		"lowdb": "^7.0.1"
 	},
 	"devDependencies": {
 		"zod": "^4.4.3"

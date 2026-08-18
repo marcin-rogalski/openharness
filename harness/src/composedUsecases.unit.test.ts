@@ -1,3 +1,5 @@
+import { rmSync } from 'node:fs'
+import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
@@ -31,6 +33,7 @@ function createConfigRepository(config: HarnessConfig) {
 }
 
 beforeEach(() => {
+	rmSync(join(validConfig.projectsDir, 'data.json'), { force: true })
 	vi.spyOn(globalThis, 'fetch').mockResolvedValue(
 		new Response(
 			JSON.stringify({

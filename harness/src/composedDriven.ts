@@ -1,18 +1,20 @@
 // Driven adapters — the application asks of others
 // This file names all concrete driven adapter types.
 
+import { join } from 'node:path'
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { Project } from '@/domain/Project'
 import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
-import InMemoryAgentRepositoryAdapter from '@/infrastructure/driven/InMemoryAgentRepositoryAdapter'
-import InMemoryBudgetRepositoryAdapter from '@/infrastructure/driven/InMemoryBudgetRepositoryAdapter'
 import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
-import InMemoryPermissionRepositoryAdapter from '@/infrastructure/driven/InMemoryPermissionRepositoryAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
-import InMemoryRuleRepositoryAdapter from '@/infrastructure/driven/InMemoryRuleRepositoryAdapter'
-import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySessionRepositoryAdapter'
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
 import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
+import LowDbAgentRepositoryAdapter from '@/infrastructure/driven/LowDbAgentRepositoryAdapter'
+import LowDbBudgetRepositoryAdapter from '@/infrastructure/driven/LowDbBudgetRepositoryAdapter'
+import LowDbPermissionRepositoryAdapter from '@/infrastructure/driven/LowDbPermissionRepositoryAdapter'
+import LowDbRuleRepositoryAdapter from '@/infrastructure/driven/LowDbRuleRepositoryAdapter'
+import LowDbSessionRepositoryAdapter from '@/infrastructure/driven/LowDbSessionRepositoryAdapter'
+import LowDbStore from '@/infrastructure/driven/LowDbStore'
 import ManualApprovalAdapter from '@/infrastructure/driven/ManualApprovalAdapter'
 import MockAgentRuntimeAdapter from '@/infrastructure/driven/MockAgentRuntimeAdapter'
 import OpenAiAgentRuntimeAdapter from '@/infrastructure/driven/OpenAiAgentRuntimeAdapter'
@@ -53,10 +55,12 @@ export default async function composeDriven(
 	}
 
 	const workspaceRoot = config?.projectsDir ?? '.'
+	const store = new LowDbStore(join(workspaceRoot, 'data.json'))
+	await store.init()
 
 	return {
 		projectRepository: new InMemoryProjectRepositoryAdapter(defaultProjects),
-		sessionRepository: new InMemorySessionRepositoryAdapter(),
+		sessionRepository: new LowDbSessionRepositoryAdapter(store),
 		eventLog: new InMemoryEventLogAdapter(),
 		agentRuntime,
 		configRepository,
@@ -68,9 +72,9 @@ export default async function composeDriven(
 			level: 'workspace-write',
 			workspaceRoot,
 		}),
-		agentRepository: new InMemoryAgentRepositoryAdapter(),
-		ruleRepository: new InMemoryRuleRepositoryAdapter(),
-		budgetRepository: new InMemoryBudgetRepositoryAdapter(),
-		permissionRepository: new InMemoryPermissionRepositoryAdapter(),
+		agentRepository: new LowDbAgentRepositoryAdapter(store),
+		ruleRepository: new LowDbRuleRepositoryAdapter(store),
+		budgetRepository: new LowDbBudgetRepositoryAdapter(store),
+		permissionRepository: new LowDbPermissionRepositoryAdapter(store),
 	}
 }
