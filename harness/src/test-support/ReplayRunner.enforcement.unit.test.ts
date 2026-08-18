@@ -1,13 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import type { HookPort } from '@/application/ports/adapters/HookPort'
+import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutorPort'
+import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import type { HookContext, HookResult } from '@/domain/Hook'
+import type { Permission } from '@/domain/Permission'
 import type { Project } from '@/domain/Project'
 import type { ToolDefinition } from '@/domain/ToolDefinition'
 import type { ToolResult } from '@/domain/ToolResult'
-import type { HookPort } from '@/application/ports/adapters/HookPort'
-import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
-import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
-import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutorPort'
-import type { Permission } from '@/domain/Permission'
 import InMemoryPermissionAdapter from '@/infrastructure/driven/InMemoryPermissionAdapter'
 import PermissionPolicyAdapter from '@/infrastructure/driven/PermissionPolicyAdapter'
 import type { ReplayFixture } from './FixtureSchema'
@@ -84,7 +83,7 @@ describe('ReplayRunner enforcement', () => {
 			const fixture = createFixture([
 				{
 					thinking: null,
-					toolCalls: [{ tool: 'mock_tool', input: '{"action":"test"}' }],
+					toolCalls: [{ tool: 'clock', input: '{"format":"iso"}' }],
 					response: '',
 				},
 				{
@@ -96,9 +95,9 @@ describe('ReplayRunner enforcement', () => {
 
 			const permission: Permission = {
 				id: 'perm-1',
-				name: 'Deny mock_tool',
+				name: 'Deny clock',
 				resource: 'tool',
-				resourceId: 'mock_tool',
+				resourceId: 'clock',
 				action: 'deny',
 				scope: 'project',
 				scopeId: null,
@@ -122,7 +121,7 @@ describe('ReplayRunner enforcement', () => {
 			const fixture = createFixture([
 				{
 					thinking: null,
-					toolCalls: [{ tool: 'mock_tool', input: '{"action":"test"}' }],
+					toolCalls: [{ tool: 'clock', input: '{"format":"iso"}' }],
 					response: '',
 				},
 				{
@@ -149,7 +148,7 @@ describe('ReplayRunner enforcement', () => {
 			const fixture = createFixture([
 				{
 					thinking: null,
-					toolCalls: [{ tool: 'mock_tool', input: '{}' }],
+					toolCalls: [{ tool: 'clock', input: '{"format":"iso"}' }],
 					response: '',
 				},
 				{
@@ -162,9 +161,9 @@ describe('ReplayRunner enforcement', () => {
 			const permissions: Permission[] = [
 				{
 					id: 'perm-1',
-					name: 'Block mock_tool',
+					name: 'Block clock',
 					resource: 'tool',
-					resourceId: 'mock_tool',
+					resourceId: 'clock',
 					action: 'deny',
 					scope: 'project',
 					scopeId: null,
@@ -200,9 +199,7 @@ describe('ReplayRunner enforcement', () => {
 				},
 			])
 
-			const budgetHook = new DenyHook(
-				'Turn token limit exceeded: 150/100',
-			)
+			const budgetHook = new DenyHook('Turn token limit exceeded: 150/100')
 
 			const runner = new ReplayRunner(fixture, testProject, {
 				hooks: [budgetHook],

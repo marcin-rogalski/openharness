@@ -2,31 +2,34 @@ import type { ToolExecutorPort } from '@/application/ports/adapters/ToolExecutor
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
 import type { ToolDefinition } from '@/domain/ToolDefinition'
 import type { ToolResult } from '@/domain/ToolResult'
-
-const mockTool: ToolDefinition = {
-	id: 'mock_tool',
-	name: 'Mock Tool',
-	description: 'A read-only mock tool for development',
-	inputSchema: { type: 'object' },
-	sandboxLevel: 'none',
-}
+import ClockTool from './tools/ClockTool'
+import type { Tool } from './tools/Tool'
+import WebSearchTool from './tools/WebSearchTool'
 
 export default class LocalToolProviderAdapter
 	implements ToolRegistryPort, ToolExecutorPort
 {
+	private readonly tools: Map<string, Tool>
+
+	constructor() {
+		const instances: Tool[] = [new ClockTool(), new WebSearchTool()]
+		this.tools = new Map(instances.map((t) => [t.definition.id, t]))
+	}
+
 	async listTools(): Promise<ToolDefinition[]> {
-		return [mockTool]
+		return [...this.tools.values()].map((t) => t.definition)
 	}
 
 	async getTool(toolId: string): Promise<ToolDefinition | null> {
-		return toolId === mockTool.id ? mockTool : null
+		return this.tools.get(toolId)?.definition ?? null
 	}
 
 	async execute(
 		toolId: string,
 		input: Record<string, unknown>,
 	): Promise<ToolResult> {
-		if (toolId !== mockTool.id) {
+		const tool = this.tools.get(toolId)
+		if (!tool) {
 			return {
 				toolCallId: '',
 				status: 'error',
@@ -35,13 +38,6 @@ export default class LocalToolProviderAdapter
 				frozen: false,
 			}
 		}
-
-		return {
-			toolCallId: '',
-			status: 'success',
-			output: { echoed: input },
-			error: null,
-			frozen: false,
-		}
+		return tool.execute(input)
 	}
 }
