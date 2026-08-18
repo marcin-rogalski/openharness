@@ -72,7 +72,7 @@ describe('EventStreamEndpoint', () => {
 		await server.stop()
 	})
 
-	it('streams events as SSE frames', async () => {
+	it('streams full events as SSE frames', async () => {
 		const controller = new AbortController()
 
 		const responsePromise = fetch(
@@ -82,7 +82,8 @@ describe('EventStreamEndpoint', () => {
 
 		await new Promise((r) => setTimeout(r, 100))
 
-		publisher.publish(makeEvent())
+		const event = makeEvent()
+		publisher.publish(event)
 
 		const response = await responsePromise
 		expect(response.status).toBe(200)
@@ -90,7 +91,8 @@ describe('EventStreamEndpoint', () => {
 
 		const text = await readStreamOnce(response.body!)
 		expect(text).toContain('id: event-1')
-		expect(text).toContain('data:')
+		expect(text).toContain('"sessionId":"session-1"')
+		expect(text).toContain('"type":"session_created"')
 
 		controller.abort()
 	})
@@ -102,7 +104,7 @@ describe('EventStreamEndpoint', () => {
 		expect(response.status).toBe(400)
 	})
 
-	it('replays missed events on Last-Event-ID', async () => {
+	it('replays all events on initial connect', async () => {
 		const events = [
 			makeEvent({ id: 'e1' }),
 			makeEvent({ id: 'e2' }),
@@ -113,17 +115,36 @@ describe('EventStreamEndpoint', () => {
 		const controller = new AbortController()
 		const response = await fetch(
 			`http://localhost:${port}/api/sessions/session-1/events`,
-			{
-				headers: { 'Last-Event-ID': 'e1' },
-				signal: controller.signal,
-			},
+			{ signal: controller.signal },
 		)
 
 		expect(response.status).toBe(200)
 
 		const text = await readStreamOnce(response.body!)
+		expect(text).toContain('id: e1')
 		expect(text).toContain('id: e2')
 		expect(text).toContain('id: e3')
+
+		controller.abort()
+	})
+
+	it('deduplicates replayed and live events by id', async () => {
+		const events = [makeEvent({ id: 'e1' })]
+		vi.mocked(eventLog.listBySession).mockResolvedValueOnce(events)
+
+		const controller = new AbortController()
+		const responsePromise = fetch(
+			`http://localhost:${port}/api/sessions/session-1/events`,
+			{ signal: controller.signal },
+		)
+
+		await new Promise((r) => setTimeout(r, 50))
+		publisher.publish(makeEvent({ id: 'e1' }))
+
+		const response = await responsePromise
+		const text = await readStreamOnce(response.body!)
+		const occurrences = text.split('id: e1').length - 1
+		expect(occurrences).toBe(1)
 
 		controller.abort()
 	})

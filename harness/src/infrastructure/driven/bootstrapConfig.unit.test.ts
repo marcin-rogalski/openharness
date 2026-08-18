@@ -167,6 +167,36 @@ describe('bootstrapConfig', () => {
 		})
 	})
 
+	it('resolves tilde paths in an existing config projectsDir', async () => {
+		const homeDir = await createHomeDir()
+		const dataDir = path.join(homeDir, 'data')
+		const configPath = path.join(dataDir, 'config.json')
+		await mkdir(dataDir, { recursive: true })
+		await writeFile(
+			configPath,
+			JSON.stringify({
+				schemaVersion: 1,
+				port: 3000,
+				projectsDir: '~/.openharness/projects',
+				providers: {
+					openai: {
+						url: 'https://api.openai.com/v1',
+						models: { 'gpt-4o-mini': { label: 'GPT-4o Mini' } },
+					},
+				},
+				defaultModel: 'openai/gpt-4o-mini',
+			}),
+			'utf8',
+		)
+		const env = { OPENHARNESS_DATA_DIR: dataDir }
+
+		const result = await bootstrapConfig({ env, cwd: '/cwd', homeDir })
+
+		expect(result.config.projectsDir).toBe(
+			path.join(homeDir, '.openharness', 'projects'),
+		)
+	})
+
 	it('fails loudly when the existing config is invalid', async () => {
 		const homeDir = await createHomeDir()
 		const dataDir = path.join(homeDir, 'data')

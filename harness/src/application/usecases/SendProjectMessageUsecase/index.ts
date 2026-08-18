@@ -7,11 +7,11 @@ import type {
 	SendProjectMessageUseCasePort,
 } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import { SendProjectMessageInputSchema } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
+import type AgentLoopService from '@/application/services/AgentLoopService'
 import { DEFAULT_AGENT_LOOP_CONFIG } from '@/domain/AgentLoopConfig'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
-import type AgentLoopService from '@/application/services/AgentLoopService'
 
 export default class SendProjectMessageUsecase
 	implements SendProjectMessageUseCasePort
@@ -53,15 +53,16 @@ export default class SendProjectMessageUsecase
 		newEvents.push(userEvent)
 
 		const turnId = crypto.randomUUID()
-		await this.agentLoop.run({
-			sessionId: session.id,
-			projectId: project.id,
-			turnId,
-			config: DEFAULT_AGENT_LOOP_CONFIG,
-		})
+		void this.agentLoop
+			.run({
+				sessionId: session.id,
+				projectId: project.id,
+				turnId,
+				config: DEFAULT_AGENT_LOOP_CONFIG,
+			})
+			.catch(() => {})
 
-		const allEvents = await this.eventLog.listBySession(session.id)
-		return { sessionId: session.id, events: allEvents }
+		return { sessionId: session.id, events: newEvents }
 	}
 
 	private async resolveSession(

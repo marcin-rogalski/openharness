@@ -1,6 +1,5 @@
-import { harnessApiSchema } from '@openharness/contracts'
+import { harnessApiSchema, SessionEventSchema } from '@openharness/contracts'
 import { FetchClient } from '@openharness/fetch'
-import type { SessionEvent } from '../schema'
 import type { HarnessApi } from './HarnessApi'
 
 export function createHarnessApiClient(baseUrl = ''): HarnessApi {
@@ -46,8 +45,10 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 
 			source.onmessage = (message) => {
 				try {
-					const event = JSON.parse(message.data) as SessionEvent
-					onEvent(event)
+					const parsed = SessionEventSchema.safeParse(JSON.parse(message.data))
+					if (parsed.success) {
+						onEvent(parsed.data)
+					}
 				} catch {
 					// ignore malformed events
 				}

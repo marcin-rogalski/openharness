@@ -2,6 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Server } from '@openharness/tempo'
 import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { EventPublisherPort } from '@/application/ports/adapters/EventPublisherPort'
+import type { SessionEvent } from '@/domain/SessionEvent'
 
 export default class EventStreamEndpoint {
 	constructor(
@@ -32,41 +33,47 @@ export default class EventStreamEndpoint {
 					'X-Accel-Buffering': 'no',
 				})
 
-				const lastEventId = req.headers['last-event-id'] as string | undefined
+				const sentIds = new Set<string>()
+				const buffer: SessionEvent[] = []
+				let replayDone = false
 
-				const writeEvent = (event: {
-					id: string
-					payload: Record<string, unknown>
-				}) => {
+				const writeEvent = (event: SessionEvent) => {
+					if (sentIds.has(event.id)) return
+					sentIds.add(event.id)
 					res.write(`id: ${event.id}\n`)
-					res.write(`data: ${JSON.stringify(event.payload)}\n\n`)
+					res.write(`data: ${JSON.stringify(event)}\n\n`)
 				}
 
-				const listener = (event: {
-					id: string
-					payload: Record<string, unknown>
-				}) => {
-					writeEvent(event)
+				const listener = (event: SessionEvent) => {
+					if (replayDone) {
+						writeEvent(event)
+					} else {
+						buffer.push(event)
+					}
 				}
 
 				this.publisher.subscribe(sessionId, listener)
 
-				if (lastEventId) {
-					this.eventLog
-						.listBySession(sessionId)
-						.then((events) => {
-							const index = events.findIndex((e) => e.id === lastEventId)
-							const missed = index === -1 ? events : events.slice(index + 1)
-							for (const event of missed) {
-								writeEvent(event)
-							}
-						})
-						.catch(() => {
-							res.write(
-								`data: ${JSON.stringify({ error: 'replay_failed' })}\n\n`,
-							)
-						})
-				}
+				this.eventLog
+					.listBySession(sessionId)
+					.then((events) => {
+						for (const event of events) {
+							writeEvent(event)
+						}
+						replayDone = true
+						for (const event of buffer) {
+							writeEvent(event)
+						}
+						buffer.length = 0
+					})
+					.catch(() => {
+						res.write(`data: ${JSON.stringify({ error: 'replay_failed' })}\n\n`)
+						replayDone = true
+						for (const event of buffer) {
+							writeEvent(event)
+						}
+						buffer.length = 0
+					})
 
 				req.on('close', () => {
 					this.publisher.unsubscribe(sessionId, listener)

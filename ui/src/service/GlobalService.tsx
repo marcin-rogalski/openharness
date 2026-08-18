@@ -7,7 +7,7 @@ import {
 	useReducer,
 } from 'react'
 import type { HarnessApi } from './api/HarnessApi'
-import { projectEventsToTimeline } from './projectEvents'
+import { projectEventsToTimeline, stringifyEventValue } from './projectEvents'
 import { globalReducer } from './reducer'
 import { type GlobalState, GlobalStateSchema, type Project } from './schema'
 
@@ -75,18 +75,30 @@ export function GlobalProvider({
 		}
 
 		const unsubscribe = api.subscribeToEvents(state.sessionId, (event) => {
+			const entries = projectEventsToTimeline([event])
+			for (const entry of entries) {
+				dispatch({ type: 'timeline/append', entry })
+			}
+
 			if (event.type === 'approval_requested') {
-				const payload = event.payload as {
-					toolCallId: string
-					tool: string
-					input: string
+				const toolCallId = event.payload.toolCallId
+				if (typeof toolCallId !== 'string') {
+					return
 				}
+				const toolId = event.payload.toolId
+				const legacyTool = event.payload.tool
+				const tool =
+					typeof toolId === 'string'
+						? toolId
+						: typeof legacyTool === 'string'
+							? legacyTool
+							: 'unknown'
 				dispatch({
 					type: 'approval/set',
 					approval: {
-						toolCallId: payload.toolCallId,
-						tool: payload.tool,
-						input: payload.input,
+						toolCallId,
+						tool,
+						input: stringifyEventValue(event.payload.input) ?? '',
 					},
 				})
 			} else if (event.type === 'approval_decided') {

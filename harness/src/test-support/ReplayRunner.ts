@@ -42,6 +42,7 @@ export default class ReplayRunner {
 	private readonly eventLog: InMemoryEventLogAdapter
 	private readonly agentRuntime: ReplayAgentRuntimeAdapter
 	private _lastSessionId: string | null = null
+	private _runPromise: Promise<unknown> | null = null
 
 	constructor(
 		private readonly fixture: ReplayFixture,
@@ -81,6 +82,12 @@ export default class ReplayRunner {
 			hooks,
 		)
 
+		const originalRun = agentLoop.run.bind(agentLoop)
+		agentLoop.run = ((...args: Parameters<typeof originalRun>) => {
+			this._runPromise = originalRun(...args)
+			return this._runPromise
+		}) as typeof originalRun
+
 		this.usecase = new SendProjectMessageUsecase(
 			projects,
 			sessions,
@@ -95,6 +102,10 @@ export default class ReplayRunner {
 			content,
 		})
 		this._lastSessionId = output.sessionId
+		if (this._runPromise) {
+			await this._runPromise
+			this._runPromise = null
+		}
 		const events = await this.eventLog.listBySession(output.sessionId)
 		return {
 			sessionId: output.sessionId,

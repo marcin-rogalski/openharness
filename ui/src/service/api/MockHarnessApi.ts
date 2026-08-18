@@ -48,6 +48,7 @@ export function createMockHarnessApi(): HarnessApi {
 			}
 
 			const now = new Date().toISOString()
+			const toolCallId = crypto.randomUUID()
 			const events: SessionEvent[] = [
 				{
 					id: crypto.randomUUID(),
@@ -72,7 +73,57 @@ export function createMockHarnessApi(): HarnessApi {
 					type: 'model_output_received',
 					payload: {
 						thinking: `Thinking about: ${trimmed}`,
-						toolCalls: [{ tool: 'mock_tool', input: trimmed, output: 'ok' }],
+						toolCalls: [],
+						response: '',
+					},
+					visibility: 'both',
+				},
+				{
+					id: crypto.randomUUID(),
+					sessionId: sessionId,
+					projectId,
+					turnId: null,
+					stepId: null,
+					timestamp: now,
+					actor: 'agent',
+					type: 'tool_call_requested',
+					payload: {
+						toolCallId,
+						toolId: 'mock_tool',
+						input: { value: trimmed },
+					},
+					visibility: 'both',
+				},
+				{
+					id: crypto.randomUUID(),
+					sessionId: sessionId,
+					projectId,
+					turnId: null,
+					stepId: null,
+					timestamp: now,
+					actor: 'agent',
+					type: 'tool_result_produced',
+					payload: {
+						toolCallId,
+						toolId: 'mock_tool',
+						status: 'completed',
+						output: 'ok',
+						error: null,
+					},
+					visibility: 'both',
+				},
+				{
+					id: crypto.randomUUID(),
+					sessionId: sessionId,
+					projectId,
+					turnId: null,
+					stepId: null,
+					timestamp: now,
+					actor: 'agent',
+					type: 'model_output_received',
+					payload: {
+						thinking: null,
+						toolCalls: [],
 						response: `Mock response to: ${trimmed}`,
 					},
 					visibility: 'both',

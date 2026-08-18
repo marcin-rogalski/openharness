@@ -5,7 +5,7 @@ import { createMockHarnessApi } from './api/MockHarnessApi'
 import { GlobalProvider, useGlobal } from './GlobalService'
 import { emptyState } from './initialState'
 import { mockState } from './mock'
-import type { GlobalState, Project } from './schema'
+import type { GlobalState, Project, SessionEvent } from './schema'
 
 function Probe() {
 	const { state, actions } = useGlobal()
@@ -17,6 +17,9 @@ function Probe() {
 				{state.selectedProjectId ?? 'none'}
 			</span>
 			<span data-testid="timeline-count">{state.timeline.length}</span>
+			<span data-testid="pending-approval">
+				{state.pendingApproval?.toolCallId ?? 'none'}
+			</span>
 			<span data-testid="error">{state.error ?? 'none'}</span>
 			<button
 				type="button"
@@ -268,7 +271,140 @@ describe('GlobalService', () => {
 		resolveProjects?.()
 		await Promise.resolve()
 	})
+
+	it('projects SSE events into the timeline', async () => {
+		const { api, emit } = createEventEmitter()
+		const state: GlobalState = {
+			...mockState,
+			selectedProjectId: 'project-1',
+			sessionId: 'session-1',
+		}
+
+		render(
+			<GlobalProvider initialState={state} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		await waitFor(() => expect(emit.current).not.toBeNull())
+		emit.current?.(
+			createSessionEvent({
+				type: 'user_message',
+				actor: 'user',
+				payload: { content: 'From SSE' },
+			}),
+		)
+
+		await waitFor(() =>
+			expect(screen.getByTestId('timeline-count')).toHaveTextContent('1'),
+		)
+	})
+
+	it('ignores duplicate SSE timeline entries', async () => {
+		const { api, emit } = createEventEmitter()
+		const state: GlobalState = {
+			...mockState,
+			selectedProjectId: 'project-1',
+			sessionId: 'session-1',
+		}
+
+		render(
+			<GlobalProvider initialState={state} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		await waitFor(() => expect(emit.current).not.toBeNull())
+		const event = createSessionEvent({
+			type: 'user_message',
+			actor: 'user',
+			payload: { content: 'Once' },
+		})
+		emit.current?.(event)
+		emit.current?.(event)
+
+		await waitFor(() =>
+			expect(screen.getByTestId('timeline-count')).toHaveTextContent('1'),
+		)
+	})
+
+	it('sets and clears pending approvals from SSE events', async () => {
+		const { api, emit } = createEventEmitter()
+		const state: GlobalState = {
+			...mockState,
+			selectedProjectId: 'project-1',
+			sessionId: 'session-1',
+		}
+
+		render(
+			<GlobalProvider initialState={state} api={api}>
+				<Probe />
+			</GlobalProvider>,
+		)
+
+		await waitFor(() => expect(emit.current).not.toBeNull())
+		emit.current?.(
+			createSessionEvent({
+				type: 'approval_requested',
+				payload: {
+					toolCallId: 'tc-1',
+					toolId: 'bash',
+					input: { command: 'ls' },
+				},
+			}),
+		)
+
+		await waitFor(() =>
+			expect(screen.getByTestId('pending-approval')).toHaveTextContent('tc-1'),
+		)
+
+		emit.current?.(
+			createSessionEvent({
+				type: 'approval_decided',
+				payload: { toolCallId: 'tc-1', decision: 'approved' },
+			}),
+		)
+
+		await waitFor(() =>
+			expect(screen.getByTestId('pending-approval')).toHaveTextContent('none'),
+		)
+	})
 })
+
+function createEventEmitter() {
+	const emit: { current: ((event: SessionEvent) => void) | null } = {
+		current: null,
+	}
+	const base = createMockHarnessApi()
+	const api = {
+		...base,
+		subscribeToEvents: vi.fn(
+			(_sessionId: string, onEvent: (event: SessionEvent) => void) => {
+				emit.current = onEvent
+				return () => {}
+			},
+		),
+	}
+
+	return { api, emit }
+}
+
+function createSessionEvent(
+	overrides: Partial<SessionEvent> & { type: SessionEvent['type'] },
+): SessionEvent {
+	return {
+		id: 'event-1',
+		sessionId: 'session-1',
+		projectId: 'project-1',
+		turnId: null,
+		stepId: null,
+		timestamp: '2026-01-01T00:00:00Z',
+		actor: 'agent',
+		payload: {},
+		visibility: 'both',
+		...overrides,
+	}
+}
 
 function ProjectSetter() {
 	const { state, actions } = useGlobal()

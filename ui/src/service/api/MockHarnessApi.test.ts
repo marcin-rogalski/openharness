@@ -71,6 +71,9 @@ describe('createMockHarnessApi', () => {
 		expect(result.events.map((event) => event.type)).toEqual([
 			'user_message',
 			'model_output_received',
+			'tool_call_requested',
+			'tool_result_produced',
+			'model_output_received',
 		])
 		expect(result.events[0]).toMatchObject({
 			projectId: 'project-1',

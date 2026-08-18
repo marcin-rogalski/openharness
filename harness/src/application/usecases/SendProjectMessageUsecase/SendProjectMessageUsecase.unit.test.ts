@@ -55,7 +55,7 @@ function createAgentLoopMock(result?: Partial<AgentLoopResult>) {
 }
 
 describe('SendProjectMessageUsecase', () => {
-	it('creates a session and returns user and model events', async () => {
+	it('creates a session and returns initial events without waiting for the agent loop', async () => {
 		const eventLog = createEventLog()
 		const agentLoop = createAgentLoopMock()
 		const usecase = new SendProjectMessageUsecase(
@@ -76,8 +76,10 @@ describe('SendProjectMessageUsecase', () => {
 		expect(runCall.sessionId).toBe(result.sessionId)
 		expect(runCall.projectId).toBe('project-1')
 		expect(runCall.turnId).toBeTypeOf('string')
-		expect(result.events.map((e) => e.type)).toContain('session_created')
-		expect(result.events.map((e) => e.type)).toContain('user_message')
+		const types = result.events.map((e) => e.type)
+		expect(types).toContain('session_created')
+		expect(types).toContain('user_message')
+		expect(types).not.toContain('model_output_received')
 	})
 
 	it('reuses an existing active session', async () => {
@@ -170,5 +172,25 @@ describe('SendProjectMessageUsecase', () => {
 			maxSteps: 20,
 			maxParallelTools: 10,
 		})
+	})
+
+	it('does not reject when the agent loop fails', async () => {
+		const agentLoop = {
+			run: vi.fn().mockRejectedValue(new Error('loop failed')),
+		}
+		const usecase = new SendProjectMessageUsecase(
+			createProjectRepository({ id: 'project-1' }),
+			createSessionRepository(),
+			createEventLog(),
+			agentLoop as never,
+		)
+
+		const result = await usecase.handle({
+			projectId: 'project-1',
+			content: 'Hello',
+		})
+
+		expect(result.sessionId).toBeTypeOf('string')
+		expect(agentLoop.run).toHaveBeenCalledOnce()
 	})
 })

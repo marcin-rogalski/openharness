@@ -575,4 +575,25 @@ describe('createHarnessApiClient', () => {
 		expect(events).toHaveLength(0)
 		unsubscribe()
 	})
+
+	it('ignores events that fail schema validation', () => {
+		const events: unknown[] = []
+		class MockEventSource {
+			close = vi.fn()
+			set onmessage(handler: (msg: MessageEvent) => void) {
+				handler({
+					data: JSON.stringify({ id: 'e1' }),
+				} as MessageEvent)
+			}
+		}
+		vi.stubGlobal('EventSource', MockEventSource)
+
+		const api = createHarnessApiClient()
+		const unsubscribe = api.subscribeToEvents('s1', (event) => {
+			events.push(event)
+		})
+
+		expect(events).toHaveLength(0)
+		unsubscribe()
+	})
 })

@@ -82,6 +82,26 @@ describe('globalReducer', () => {
 		expect(next.timeline).toEqual([entry])
 	})
 
+	it('ignores duplicate timeline entries', () => {
+		const entry = {
+			type: 'user_message' as const,
+			id: 'entry-1',
+			projectId: 'project-1',
+			content: 'Hello',
+		}
+		const state: GlobalState = {
+			...baseState,
+			timeline: [entry],
+		}
+
+		const next = globalReducer(state, {
+			type: 'timeline/append',
+			entry,
+		})
+
+		expect(next.timeline).toHaveLength(1)
+	})
+
 	it('sets and clears the error state', () => {
 		const withError = globalReducer(baseState, {
 			type: 'error/set',

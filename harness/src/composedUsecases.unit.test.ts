@@ -88,10 +88,6 @@ describe('composeUsecases', () => {
 		expect(result.events.map((entry) => entry.type)).toEqual([
 			'session_created',
 			'user_message',
-			'turn_started',
-			'step_started',
-			'model_output_received',
-			'turn_ended',
 		])
 	})
 

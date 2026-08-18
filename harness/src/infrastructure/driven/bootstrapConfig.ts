@@ -93,7 +93,11 @@ export async function bootstrapConfig(
 	const existing = await repository.load()
 
 	if (existing) {
-		return { config: existing, repository, configPath, dataDir }
+		const config: HarnessConfig = {
+			...existing,
+			projectsDir: resolveConfigPath(existing.projectsDir, cwd, homeDir),
+		}
+		return { config, repository, configPath, dataDir }
 	}
 
 	const config = createDefaultConfig(dataDir, env, cwd, homeDir)

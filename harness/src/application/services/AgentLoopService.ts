@@ -271,6 +271,7 @@ export default class AgentLoopService {
 					'tool_result_produced',
 					{
 						toolCallId: result.toolCallId,
+						toolId: domainCalls[i].toolId,
 						status: result.status,
 						output: result.output,
 						error: result.error,
