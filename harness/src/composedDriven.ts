@@ -4,8 +4,12 @@
 import type { ConfigRepositoryPort } from '@/application/ports/adapters/ConfigRepositoryPort'
 import type { Project } from '@/domain/Project'
 import AllowAllPolicyAdapter from '@/infrastructure/driven/AllowAllPolicyAdapter'
+import InMemoryAgentRepositoryAdapter from '@/infrastructure/driven/InMemoryAgentRepositoryAdapter'
+import InMemoryBudgetRepositoryAdapter from '@/infrastructure/driven/InMemoryBudgetRepositoryAdapter'
 import InMemoryEventLogAdapter from '@/infrastructure/driven/InMemoryEventLogAdapter'
+import InMemoryPermissionRepositoryAdapter from '@/infrastructure/driven/InMemoryPermissionRepositoryAdapter'
 import InMemoryProjectRepositoryAdapter from '@/infrastructure/driven/InMemoryProjectRepositoryAdapter'
+import InMemoryRuleRepositoryAdapter from '@/infrastructure/driven/InMemoryRuleRepositoryAdapter'
 import InMemorySessionRepositoryAdapter from '@/infrastructure/driven/InMemorySessionRepositoryAdapter'
 import LocalToolProviderAdapter from '@/infrastructure/driven/LocalToolProviderAdapter'
 import LogicalPathSandboxAdapter from '@/infrastructure/driven/LogicalPathSandboxAdapter'
@@ -64,5 +68,9 @@ export default async function composeDriven(
 			level: 'workspace-write',
 			workspaceRoot,
 		}),
+		agentRepository: new InMemoryAgentRepositoryAdapter(),
+		ruleRepository: new InMemoryRuleRepositoryAdapter(),
+		budgetRepository: new InMemoryBudgetRepositoryAdapter(),
+		permissionRepository: new InMemoryPermissionRepositoryAdapter(),
 	}
 }

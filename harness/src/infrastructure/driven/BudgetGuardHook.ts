@@ -1,38 +1,47 @@
 import type { HookPort } from '@/application/ports/adapters/HookPort'
+import type { BudgetPort } from '@/application/ports/adapters/BudgetPort'
 import type { HookContext, HookResult } from '@/domain/Hook'
+import type { TokenUsage } from '@/domain/TokenUsage'
 
-export interface BudgetTracker {
-	getUsed(): number
-	getLimit(): number
+interface BudgetHookPayload {
+	usage: TokenUsage
 }
 
 export default class BudgetGuardHook implements HookPort {
 	readonly id = 'budget-guard'
 	readonly priority = 10
 
-	constructor(private readonly tracker: BudgetTracker) {}
+	constructor(private readonly budgetPort: BudgetPort) {}
 
-	async invoke(_context: HookContext, _payload: unknown): Promise<HookResult> {
-		const used = this.tracker.getUsed()
-		const limit = this.tracker.getLimit()
+	async invoke(context: HookContext, payload: unknown): Promise<HookResult> {
+		const { usage } = payload as BudgetHookPayload
 
-		if (used >= limit) {
+		const result = await this.budgetPort.check(
+			context.sessionId,
+			context.turnId ?? 'unknown',
+			usage,
+		)
+
+		if (!result.allowed) {
 			return {
 				decision: 'deny',
 				annotations: [],
-				reason: `Budget exhausted: ${used}/${limit}`,
+				reason: result.reason,
 			}
 		}
 
+		await this.budgetPort.recordUsage(
+			context.sessionId,
+			context.turnId ?? 'unknown',
+			usage,
+		)
+
 		return {
 			decision: 'allow',
-			annotations: [
-				{
-					hookId: this.id,
-					key: 'budget_remaining',
-					value: limit - used,
-				},
-			],
+			annotations:
+				result.remainingTokens !== null
+					? [{ hookId: this.id, key: 'budget_remaining', value: result.remainingTokens }]
+					: [],
 			reason: null,
 		}
 	}
