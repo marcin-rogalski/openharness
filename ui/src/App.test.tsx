@@ -62,6 +62,11 @@ describe('App', () => {
 			{
 				health: async () => {},
 				listProjects: async () => [],
+				createProject: async (name) => ({
+					id: 'new-project',
+					name,
+					status: 'idle' as const,
+				}),
 				listSessions: async () => [],
 				sendMessage: async () => ({ sessionId: 's', events: [] }),
 				getConfig: async () => ({

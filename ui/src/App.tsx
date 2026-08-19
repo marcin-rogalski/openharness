@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ApprovalDialog from '@/components/ApprovalDialog'
 import ConfigurationDialog from '@/components/ConfigurationDialog'
+import CreateProjectForm from '@/components/CreateProjectForm'
 import MessagePanel from '@/components/MessagePanel'
 import SessionPanel from '@/components/SessionPanel'
 import SettingsDialog from '@/components/SettingsDialog'
@@ -53,6 +54,8 @@ export default function App({
 				) : null}
 			</header>
 			<p className={styles.description}>Projects</p>
+
+			{api ? <CreateProjectForm /> : null}
 
 			{state.error ? (
 				<p className={styles.error} data-testid="error-banner">

@@ -13,6 +13,12 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 			const payload = await client.request('listProjects')
 			return payload.projects
 		},
+		async createProject(name) {
+			const payload = await client.request('createProject', {
+				body: { name },
+			})
+			return payload.project
+		},
 		async listSessions(projectId) {
 			const payload = await client.request('listSessions', {
 				params: { projectId },

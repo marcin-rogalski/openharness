@@ -31,6 +31,7 @@ export interface SendMessageResult {
 export interface HarnessApi {
 	health(): Promise<void>
 	listProjects(): Promise<Project[]>
+	createProject(name: string): Promise<Project>
 	listSessions(projectId: string): Promise<SessionSummary[]>
 	sendMessage(projectId: string, content: string): Promise<SendMessageResult>
 	getConfig(): Promise<HarnessConfig>

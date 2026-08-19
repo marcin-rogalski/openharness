@@ -10,6 +10,11 @@ function createApi() {
 	return {
 		health: vi.fn(async () => {}),
 		listProjects: vi.fn(async () => []),
+		createProject: vi.fn(async (name: string) => ({
+			id: 'p',
+			name,
+			status: 'idle' as const,
+		})),
 		listSessions: vi.fn(async () => []),
 		sendMessage: vi.fn(async () => ({ sessionId: 's', events: [] })),
 		getConfig: vi.fn(async () => ({

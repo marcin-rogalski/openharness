@@ -5,6 +5,7 @@ import ApproveToolCallEndpoint from '@/infrastructure/driving/ApproveToolCallEnd
 import CreateAgentEndpoint from '@/infrastructure/driving/CreateAgentEndpoint'
 import CreateBudgetEndpoint from '@/infrastructure/driving/CreateBudgetEndpoint'
 import CreatePermissionEndpoint from '@/infrastructure/driving/CreatePermissionEndpoint'
+import CreateProjectEndpoint from '@/infrastructure/driving/CreateProjectEndpoint'
 import CreateRuleEndpoint from '@/infrastructure/driving/CreateRuleEndpoint'
 import DenyToolCallEndpoint from '@/infrastructure/driving/DenyToolCallEndpoint'
 import GetConfigEndpoint from '@/infrastructure/driving/GetConfigEndpoint'
@@ -29,6 +30,7 @@ export default function composeDriving(usecases: Usecases) {
 	return [
 		new HealthEndpoint(),
 		new ListProjectsEndpoint(usecases.listProjects),
+		new CreateProjectEndpoint(usecases.createProject),
 		new ListSessionsEndpoint(usecases.listSessions),
 		new SendProjectMessageEndpoint(usecases.sendProjectMessage),
 		new GetConfigEndpoint(usecases.getConfig),

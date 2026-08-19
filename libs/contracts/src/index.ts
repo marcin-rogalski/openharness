@@ -17,7 +17,10 @@ import {
 	listPermissionsEndpoint,
 	updatePermissionEndpoint,
 } from './permissions'
-import { listProjectsEndpoint } from './projects'
+import {
+	createProjectEndpoint,
+	listProjectsEndpoint,
+} from './projects'
 import {
 	createRuleEndpoint,
 	listRulesEndpoint,
@@ -42,6 +45,7 @@ export * from './tools'
 export const harnessApiSchema = {
 	health: healthEndpoint,
 	listProjects: listProjectsEndpoint,
+	createProject: createProjectEndpoint,
 	listSessions: listSessionsEndpoint,
 	sendMessage: sendMessageEndpoint,
 	getConfig: getConfigEndpoint,

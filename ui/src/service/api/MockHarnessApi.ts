@@ -38,6 +38,15 @@ export function createMockHarnessApi(): HarnessApi {
 		async listProjects() {
 			return mockState.projects
 		},
+		async createProject(name) {
+			const project = {
+				id: crypto.randomUUID(),
+				name,
+				status: 'idle' as const,
+			}
+			mockState.projects.push(project)
+			return project
+		},
 		async listSessions(projectId): Promise<SessionSummary[]> {
 			if (!sessionId) return []
 			return [

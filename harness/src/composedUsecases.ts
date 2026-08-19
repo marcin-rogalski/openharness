@@ -4,6 +4,7 @@
 import type { AgentUsecasePort } from '@/application/ports/usecases/AgentUsecasePort'
 import type { ApproveToolCallUseCasePort } from '@/application/ports/usecases/ApproveToolCallUseCasePort'
 import type { BudgetUsecasePort } from '@/application/ports/usecases/BudgetUsecasePort'
+import type { CreateProjectUseCasePort } from '@/application/ports/usecases/CreateProjectUseCasePort'
 import type { DenyToolCallUseCasePort } from '@/application/ports/usecases/DenyToolCallUseCasePort'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
@@ -18,6 +19,7 @@ import ToolExecutionService from '@/application/services/ToolExecutionService'
 import AgentUsecase from '@/application/usecases/AgentUsecase'
 import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
 import BudgetUsecase from '@/application/usecases/BudgetUsecase'
+import CreateProjectUsecase from '@/application/usecases/CreateProjectUsecase'
 import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
@@ -32,6 +34,7 @@ type Driven = Awaited<ReturnType<typeof composeDriven>>
 
 export default function composeUsecases(driven: Driven): {
 	listProjects: ListProjectsUseCasePort
+	createProject: CreateProjectUseCasePort
 	listSessions: ListSessionsUseCasePort
 	sendProjectMessage: SendProjectMessageUseCasePort
 	getConfig: GetConfigUseCasePort
@@ -64,6 +67,7 @@ export default function composeUsecases(driven: Driven): {
 
 	return {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
+		createProject: new CreateProjectUsecase(driven.projectRepository),
 		listSessions: new ListSessionsUsecase(
 			driven.sessionRepository,
 			driven.eventLog,

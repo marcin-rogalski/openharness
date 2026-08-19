@@ -17,6 +17,7 @@ interface GlobalContextValue {
 		setProjects: (projects: Project[]) => void
 		selectProject: (projectId: string | null) => void
 		selectSession: (sessionId: string) => void
+		createProject: (name: string) => Promise<void>
 		sendMessage: (content: string) => Promise<void>
 		approveToolCall: (toolCallId: string) => Promise<void>
 		denyToolCall: (toolCallId: string) => Promise<void>
@@ -140,6 +141,20 @@ export function GlobalProvider({
 					dispatch({ type: 'project/select', projectId }),
 				selectSession: (sessionId) =>
 					dispatch({ type: 'session/set', sessionId }),
+				createProject: async (name) => {
+					try {
+						const project = await api.createProject(name)
+						const projects = [...state.projects, project]
+						dispatch({ type: 'projects/set', projects })
+						dispatch({ type: 'project/select', projectId: project.id })
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to create project'),
+						})
+					}
+				},
 				sendMessage: async (content) => {
 					const trimmed = content.trim()
 					const projectId = state.selectedProjectId
