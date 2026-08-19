@@ -29,6 +29,7 @@ function createApi(overrides: Partial<HarnessApi> = {}): HarnessApi {
 			endedAt: null,
 		})),
 		deleteSession: vi.fn(async () => {}),
+		stopSession: vi.fn(async () => {}),
 		sendMessage: vi.fn(async () => ({ sessionId: 's', events: [] })),
 		getConfig: vi.fn(async () => ({
 			schemaVersion: 1 as const,

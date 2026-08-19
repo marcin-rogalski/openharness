@@ -21,6 +21,7 @@ interface GlobalContextValue {
 		deleteProject: (projectId: string) => Promise<void>
 		createSession: () => Promise<void>
 		deleteSession: (sessionId: string) => Promise<void>
+		stopSession: () => Promise<void>
 		sendMessage: (content: string) => Promise<void>
 		approveToolCall: (toolCallId: string) => Promise<void>
 		denyToolCall: (toolCallId: string) => Promise<void>
@@ -201,6 +202,20 @@ export function GlobalProvider({
 						dispatch({
 							type: 'error/set',
 							error: getErrorMessage(error, 'Failed to delete session'),
+						})
+					}
+				},
+				stopSession: async () => {
+					const projectId = state.selectedProjectId
+					const sessionId = state.sessionId
+					if (!projectId || !sessionId) return
+					try {
+						await api.stopSession(projectId, sessionId)
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to stop session'),
 						})
 					}
 				},

@@ -76,6 +76,7 @@ describe('App', () => {
 					endedAt: null,
 				}),
 				deleteSession: async () => {},
+				stopSession: async () => {},
 				listSessions: async () => [],
 				sendMessage: async () => ({ sessionId: 's', events: [] }),
 				getConfig: async () => ({

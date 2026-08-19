@@ -71,6 +71,16 @@ export default function MessagePanel() {
 				>
 					Send
 				</button>
+				{state.sessionId ? (
+					<button
+						type="button"
+						className={styles.button}
+						data-testid="stop-session"
+						onClick={() => void actions.stopSession()}
+					>
+						Stop
+					</button>
+				) : null}
 			</form>
 		</section>
 	)

@@ -80,6 +80,9 @@ export function createMockHarnessApi(): HarnessApi {
 		async deleteSession() {
 			sessionId = null
 		},
+		async stopSession() {
+			return undefined
+		},
 		async sendMessage(projectId, content) {
 			const trimmed = content.trim()
 			if (!trimmed) {

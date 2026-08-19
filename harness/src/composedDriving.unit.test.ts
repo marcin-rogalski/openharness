@@ -20,6 +20,7 @@ import ListProjectsEndpoint from '@/infrastructure/driving/ListProjectsEndpoint'
 import ListRulesEndpoint from '@/infrastructure/driving/ListRulesEndpoint'
 import ListSessionsEndpoint from '@/infrastructure/driving/ListSessionsEndpoint'
 import SendProjectMessageEndpoint from '@/infrastructure/driving/SendProjectMessageEndpoint'
+import StopSessionEndpoint from '@/infrastructure/driving/StopSessionEndpoint'
 import UpdateAgentEndpoint from '@/infrastructure/driving/UpdateAgentEndpoint'
 import UpdateBudgetEndpoint from '@/infrastructure/driving/UpdateBudgetEndpoint'
 import UpdateConfigEndpoint from '@/infrastructure/driving/UpdateConfigEndpoint'
@@ -155,6 +156,22 @@ describe('composeDriving', () => {
 		})
 	})
 
+	it('builds the stop session endpoint', async () => {
+		const configRepository = {
+			load: vi.fn(),
+			save: vi.fn(),
+		} as ConfigRepositoryPort
+		const endpoints = composeDriving(
+			composeUsecases(await composeDriven(configRepository)),
+		)
+
+		expect(endpoints[8]).toBeInstanceOf(StopSessionEndpoint)
+		expect(endpoints[8].toInfo()).toMatchObject({
+			method: 'POST',
+			path: '/api/projects/:projectId/sessions/:sessionId/stop',
+		})
+	})
+
 	it('builds the create session endpoint', async () => {
 		const configRepository = {
 			load: vi.fn(),
@@ -180,14 +197,14 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints).toHaveLength(24)
-		expect(endpoints[8]).toBeInstanceOf(GetConfigEndpoint)
-		expect(endpoints[8].toInfo()).toMatchObject({
+		expect(endpoints).toHaveLength(25)
+		expect(endpoints[9]).toBeInstanceOf(GetConfigEndpoint)
+		expect(endpoints[9].toInfo()).toMatchObject({
 			method: 'GET',
 			path: '/api/config',
 		})
-		expect(endpoints[9]).toBeInstanceOf(UpdateConfigEndpoint)
-		expect(endpoints[9].toInfo()).toMatchObject({
+		expect(endpoints[10]).toBeInstanceOf(UpdateConfigEndpoint)
+		expect(endpoints[10].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/config',
 		})
@@ -202,13 +219,13 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints[10]).toBeInstanceOf(ApproveToolCallEndpoint)
-		expect(endpoints[10].toInfo()).toMatchObject({
+		expect(endpoints[11]).toBeInstanceOf(ApproveToolCallEndpoint)
+		expect(endpoints[11].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/tool-calls/:toolCallId/approve',
 		})
-		expect(endpoints[11]).toBeInstanceOf(DenyToolCallEndpoint)
-		expect(endpoints[11].toInfo()).toMatchObject({
+		expect(endpoints[12]).toBeInstanceOf(DenyToolCallEndpoint)
+		expect(endpoints[12].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/tool-calls/:toolCallId/deny',
 		})
@@ -223,18 +240,18 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints[12]).toBeInstanceOf(ListAgentsEndpoint)
-		expect(endpoints[12].toInfo()).toMatchObject({
+		expect(endpoints[13]).toBeInstanceOf(ListAgentsEndpoint)
+		expect(endpoints[13].toInfo()).toMatchObject({
 			method: 'GET',
 			path: '/api/agents',
 		})
-		expect(endpoints[13]).toBeInstanceOf(CreateAgentEndpoint)
-		expect(endpoints[13].toInfo()).toMatchObject({
+		expect(endpoints[14]).toBeInstanceOf(CreateAgentEndpoint)
+		expect(endpoints[14].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/agents',
 		})
-		expect(endpoints[14]).toBeInstanceOf(UpdateAgentEndpoint)
-		expect(endpoints[14].toInfo()).toMatchObject({
+		expect(endpoints[15]).toBeInstanceOf(UpdateAgentEndpoint)
+		expect(endpoints[15].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/agents',
 		})
@@ -249,18 +266,18 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints[15]).toBeInstanceOf(ListRulesEndpoint)
-		expect(endpoints[15].toInfo()).toMatchObject({
+		expect(endpoints[16]).toBeInstanceOf(ListRulesEndpoint)
+		expect(endpoints[16].toInfo()).toMatchObject({
 			method: 'GET',
 			path: '/api/rules',
 		})
-		expect(endpoints[16]).toBeInstanceOf(CreateRuleEndpoint)
-		expect(endpoints[16].toInfo()).toMatchObject({
+		expect(endpoints[17]).toBeInstanceOf(CreateRuleEndpoint)
+		expect(endpoints[17].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/rules',
 		})
-		expect(endpoints[17]).toBeInstanceOf(UpdateRuleEndpoint)
-		expect(endpoints[17].toInfo()).toMatchObject({
+		expect(endpoints[18]).toBeInstanceOf(UpdateRuleEndpoint)
+		expect(endpoints[18].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/rules',
 		})
@@ -275,18 +292,18 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints[18]).toBeInstanceOf(ListBudgetsEndpoint)
-		expect(endpoints[18].toInfo()).toMatchObject({
+		expect(endpoints[19]).toBeInstanceOf(ListBudgetsEndpoint)
+		expect(endpoints[19].toInfo()).toMatchObject({
 			method: 'GET',
 			path: '/api/budgets',
 		})
-		expect(endpoints[19]).toBeInstanceOf(CreateBudgetEndpoint)
-		expect(endpoints[19].toInfo()).toMatchObject({
+		expect(endpoints[20]).toBeInstanceOf(CreateBudgetEndpoint)
+		expect(endpoints[20].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/budgets',
 		})
-		expect(endpoints[20]).toBeInstanceOf(UpdateBudgetEndpoint)
-		expect(endpoints[20].toInfo()).toMatchObject({
+		expect(endpoints[21]).toBeInstanceOf(UpdateBudgetEndpoint)
+		expect(endpoints[21].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/budgets',
 		})
@@ -301,18 +318,18 @@ describe('composeDriving', () => {
 			composeUsecases(await composeDriven(configRepository)),
 		)
 
-		expect(endpoints[21]).toBeInstanceOf(ListPermissionsEndpoint)
-		expect(endpoints[21].toInfo()).toMatchObject({
+		expect(endpoints[22]).toBeInstanceOf(ListPermissionsEndpoint)
+		expect(endpoints[22].toInfo()).toMatchObject({
 			method: 'GET',
 			path: '/api/permissions',
 		})
-		expect(endpoints[22]).toBeInstanceOf(CreatePermissionEndpoint)
-		expect(endpoints[22].toInfo()).toMatchObject({
+		expect(endpoints[23]).toBeInstanceOf(CreatePermissionEndpoint)
+		expect(endpoints[23].toInfo()).toMatchObject({
 			method: 'POST',
 			path: '/api/permissions',
 		})
-		expect(endpoints[23]).toBeInstanceOf(UpdatePermissionEndpoint)
-		expect(endpoints[23].toInfo()).toMatchObject({
+		expect(endpoints[24]).toBeInstanceOf(UpdatePermissionEndpoint)
+		expect(endpoints[24].toInfo()).toMatchObject({
 			method: 'PUT',
 			path: '/api/permissions',
 		})

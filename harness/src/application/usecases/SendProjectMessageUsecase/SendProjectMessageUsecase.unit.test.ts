@@ -3,6 +3,7 @@ import type { EventLogPort } from '@/application/ports/adapters/EventLogPort'
 import type { ProjectRepositoryPort } from '@/application/ports/adapters/ProjectRepositoryPort'
 import type { SessionRepositoryPort } from '@/application/ports/adapters/SessionRepositoryPort'
 import type { AgentLoopResult } from '@/application/services/AgentLoopService'
+import ActiveTurnRegistry from '@/application/services/ActiveTurnRegistry'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
 import type { SessionEvent } from '@/domain/SessionEvent'
@@ -63,6 +64,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			eventLog,
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		const result = await usecase.handle({
@@ -96,6 +98,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(existingSession),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		const result = await usecase.handle({
@@ -114,6 +117,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		const result = await usecase.handle({
@@ -132,6 +136,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		await expect(
@@ -146,6 +151,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		await expect(
@@ -160,6 +166,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		await usecase.handle({
@@ -183,6 +190,7 @@ describe('SendProjectMessageUsecase', () => {
 			createSessionRepository(),
 			createEventLog(),
 			agentLoop as never,
+			new ActiveTurnRegistry(),
 		)
 
 		const result = await usecase.handle({

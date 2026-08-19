@@ -38,6 +38,7 @@ export interface HarnessApi {
 	listSessions(projectId: string): Promise<SessionSummary[]>
 	createSession(projectId: string): Promise<Session>
 	deleteSession(projectId: string, sessionId: string): Promise<void>
+	stopSession(projectId: string, sessionId: string): Promise<void>
 	sendMessage(projectId: string, content: string): Promise<SendMessageResult>
 	getConfig(): Promise<HarnessConfig>
 	updateConfig(input: UpdateConfigInput): Promise<UpdateConfigResult>

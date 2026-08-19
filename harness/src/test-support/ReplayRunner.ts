@@ -1,6 +1,7 @@
 import type { HookPort } from '@/application/ports/adapters/HookPort'
 import type { PolicyPort } from '@/application/ports/adapters/PolicyPort'
 import type { ToolRegistryPort } from '@/application/ports/adapters/ToolRegistryPort'
+import ActiveTurnRegistry from '@/application/services/ActiveTurnRegistry'
 import AgentLoopService from '@/application/services/AgentLoopService'
 import HookRegistryService from '@/application/services/HookRegistryService'
 import ToolExecutionService from '@/application/services/ToolExecutionService'
@@ -93,6 +94,7 @@ export default class ReplayRunner {
 			sessions,
 			this.eventLog,
 			agentLoop,
+			new ActiveTurnRegistry(),
 		)
 	}
 

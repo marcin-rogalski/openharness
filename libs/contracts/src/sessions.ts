@@ -65,5 +65,21 @@ export const deleteSessionEndpoint = {
 	response: DeleteSessionResponseSchema,
 } satisfies EndpointSchema
 
+export const StopSessionParamsSchema = z.object({
+	projectId: z.string().min(1),
+	sessionId: z.string().min(1),
+})
+
+export const StopSessionResponseSchema = z.object({
+	ok: z.literal(true),
+})
+
+export const stopSessionEndpoint = {
+	method: 'POST' as const,
+	path: '/api/projects/:projectId/sessions/:sessionId/stop',
+	params: StopSessionParamsSchema,
+	response: StopSessionResponseSchema,
+} satisfies EndpointSchema
+
 export type Session = z.infer<typeof SessionSchema>
 export type SessionSummary = z.infer<typeof SessionSummarySchema>

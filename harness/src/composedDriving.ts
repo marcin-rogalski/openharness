@@ -20,6 +20,7 @@ import ListProjectsEndpoint from '@/infrastructure/driving/ListProjectsEndpoint'
 import ListRulesEndpoint from '@/infrastructure/driving/ListRulesEndpoint'
 import ListSessionsEndpoint from '@/infrastructure/driving/ListSessionsEndpoint'
 import SendProjectMessageEndpoint from '@/infrastructure/driving/SendProjectMessageEndpoint'
+import StopSessionEndpoint from '@/infrastructure/driving/StopSessionEndpoint'
 import UpdateAgentEndpoint from '@/infrastructure/driving/UpdateAgentEndpoint'
 import UpdateBudgetEndpoint from '@/infrastructure/driving/UpdateBudgetEndpoint'
 import UpdateConfigEndpoint from '@/infrastructure/driving/UpdateConfigEndpoint'
@@ -39,6 +40,7 @@ export default function composeDriving(usecases: Usecases) {
 		new CreateSessionEndpoint(usecases.createSession),
 		new DeleteSessionEndpoint(usecases.deleteSession),
 		new SendProjectMessageEndpoint(usecases.sendProjectMessage),
+		new StopSessionEndpoint(usecases.stopSession),
 		new GetConfigEndpoint(usecases.getConfig),
 		new UpdateConfigEndpoint(usecases.updateConfig),
 		new ApproveToolCallEndpoint(usecases.approveToolCall),

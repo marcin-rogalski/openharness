@@ -15,8 +15,10 @@ import type { ListSessionsUseCasePort } from '@/application/ports/usecases/ListS
 import type { PermissionUsecasePort } from '@/application/ports/usecases/PermissionUsecasePort'
 import type { RuleUsecasePort } from '@/application/ports/usecases/RuleUsecasePort'
 import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
+import type { StopSessionUseCasePort } from '@/application/ports/usecases/StopSessionUseCasePort'
 import type { UpdateConfigUseCasePort } from '@/application/ports/usecases/UpdateConfigUseCasePort'
 import AgentLoopService from '@/application/services/AgentLoopService'
+import ActiveTurnRegistry from '@/application/services/ActiveTurnRegistry'
 import HookRegistryService from '@/application/services/HookRegistryService'
 import ToolExecutionService from '@/application/services/ToolExecutionService'
 import AgentUsecase from '@/application/usecases/AgentUsecase'
@@ -33,6 +35,7 @@ import ListSessionsUsecase from '@/application/usecases/ListSessionsUsecase'
 import PermissionUsecase from '@/application/usecases/PermissionUsecase'
 import RuleUsecase from '@/application/usecases/RuleUsecase'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
+import StopSessionUsecase from '@/application/usecases/StopSessionUsecase'
 import UpdateConfigUsecase from '@/application/usecases/UpdateConfigUsecase'
 import type composeDriven from './composedDriven'
 
@@ -46,6 +49,7 @@ export default function composeUsecases(driven: Driven): {
 	createSession: CreateSessionUseCasePort
 	deleteSession: DeleteSessionUseCasePort
 	sendProjectMessage: SendProjectMessageUseCasePort
+	stopSession: StopSessionUseCasePort
 	getConfig: GetConfigUseCasePort
 	updateConfig: UpdateConfigUseCasePort
 	approveToolCall: ApproveToolCallUseCasePort
@@ -65,6 +69,8 @@ export default function composeUsecases(driven: Driven): {
 	)
 
 	const hooks = new HookRegistryService()
+
+	const activeTurns = new ActiveTurnRegistry()
 
 	const agentLoop = new AgentLoopService(
 		driven.agentRuntime,
@@ -99,6 +105,12 @@ export default function composeUsecases(driven: Driven): {
 			driven.sessionRepository,
 			driven.eventLog,
 			agentLoop,
+			activeTurns,
+		),
+		stopSession: new StopSessionUsecase(
+			driven.projectRepository,
+			driven.sessionRepository,
+			activeTurns,
 		),
 		getConfig: new GetConfigUsecase(driven.configRepository),
 		updateConfig: new UpdateConfigUsecase(driven.configRepository),

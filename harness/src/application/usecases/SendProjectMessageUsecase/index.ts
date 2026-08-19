@@ -8,6 +8,7 @@ import type {
 } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import { SendProjectMessageInputSchema } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
 import type AgentLoopService from '@/application/services/AgentLoopService'
+import ActiveTurnRegistry from '@/application/services/ActiveTurnRegistry'
 import { DEFAULT_AGENT_LOOP_CONFIG } from '@/domain/AgentLoopConfig'
 import { ProjectNotFoundError } from '@/domain/ProjectNotFoundError'
 import type { Session } from '@/domain/Session'
@@ -21,6 +22,7 @@ export default class SendProjectMessageUsecase
 		private readonly sessions: SessionRepositoryPort,
 		private readonly eventLog: EventLogPort,
 		private readonly agentLoop: AgentLoopService,
+		private readonly activeTurns: ActiveTurnRegistry,
 	) {}
 
 	async handle(
@@ -53,14 +55,20 @@ export default class SendProjectMessageUsecase
 		newEvents.push(userEvent)
 
 		const turnId = crypto.randomUUID()
+		const controller = new AbortController()
+		this.activeTurns.register(session.id, controller)
 		void this.agentLoop
 			.run({
 				sessionId: session.id,
 				projectId: project.id,
 				turnId,
 				config: DEFAULT_AGENT_LOOP_CONFIG,
+				abortSignal: controller.signal,
 			})
 			.catch(() => {})
+			.finally(() => {
+				this.activeTurns.unregister(session.id)
+			})
 
 		return { sessionId: session.id, events: newEvents }
 	}

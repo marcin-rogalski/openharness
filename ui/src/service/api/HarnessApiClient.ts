@@ -41,6 +41,11 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 				params: { projectId, sessionId },
 			})
 		},
+		async stopSession(projectId, sessionId) {
+			await client.request('stopSession', {
+				params: { projectId, sessionId },
+			})
+		},
 		async sendMessage(projectId, content) {
 			const payload = await client.request('sendMessage', {
 				params: { projectId },

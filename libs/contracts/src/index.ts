@@ -31,6 +31,7 @@ import {
 	createSessionEndpoint,
 	deleteSessionEndpoint,
 	listSessionsEndpoint,
+	stopSessionEndpoint,
 } from './sessions'
 import { approveToolCallEndpoint, denyToolCallEndpoint } from './toolCalls'
 
@@ -55,6 +56,7 @@ export const harnessApiSchema = {
 	listSessions: listSessionsEndpoint,
 	createSession: createSessionEndpoint,
 	deleteSession: deleteSessionEndpoint,
+	stopSession: stopSessionEndpoint,
 	sendMessage: sendMessageEndpoint,
 	getConfig: getConfigEndpoint,
 	updateConfig: updateConfigEndpoint,
