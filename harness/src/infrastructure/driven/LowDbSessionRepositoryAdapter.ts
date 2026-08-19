@@ -34,4 +34,12 @@ export default class LowDbSessionRepositoryAdapter
 		}
 		await this.store.persist()
 	}
+
+	async delete(id: string): Promise<void> {
+		const index = this.store.db.data.sessions.findIndex((s) => s.id === id)
+		if (index !== -1) {
+			this.store.db.data.sessions.splice(index, 1)
+			await this.store.persist()
+		}
+	}
 }

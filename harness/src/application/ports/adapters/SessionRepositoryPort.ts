@@ -5,4 +5,5 @@ export interface SessionRepositoryPort {
 	findActiveByProjectId(projectId: string): Promise<Session | null>
 	listByProjectId(projectId: string): Promise<Session[]>
 	save(session: Session): Promise<void>
+	delete(id: string): Promise<void>
 }

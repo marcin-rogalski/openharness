@@ -19,6 +19,7 @@ import {
 } from './permissions'
 import {
 	createProjectEndpoint,
+	deleteProjectEndpoint,
 	listProjectsEndpoint,
 } from './projects'
 import {
@@ -28,6 +29,7 @@ import {
 } from './rules'
 import {
 	createSessionEndpoint,
+	deleteSessionEndpoint,
 	listSessionsEndpoint,
 } from './sessions'
 import { approveToolCallEndpoint, denyToolCallEndpoint } from './toolCalls'
@@ -49,8 +51,10 @@ export const harnessApiSchema = {
 	health: healthEndpoint,
 	listProjects: listProjectsEndpoint,
 	createProject: createProjectEndpoint,
+	deleteProject: deleteProjectEndpoint,
 	listSessions: listSessionsEndpoint,
 	createSession: createSessionEndpoint,
+	deleteSession: deleteSessionEndpoint,
 	sendMessage: sendMessageEndpoint,
 	getConfig: getConfigEndpoint,
 	updateConfig: updateConfigEndpoint,

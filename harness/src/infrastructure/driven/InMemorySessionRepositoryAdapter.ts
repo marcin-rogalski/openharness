@@ -26,4 +26,8 @@ export default class InMemorySessionRepositoryAdapter
 	async save(session: Session): Promise<void> {
 		this.sessions.set(session.id, session)
 	}
+
+	async delete(id: string): Promise<void> {
+		this.sessions.delete(id)
+	}
 }

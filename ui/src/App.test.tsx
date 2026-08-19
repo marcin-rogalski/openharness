@@ -67,6 +67,7 @@ describe('App', () => {
 					name,
 					status: 'idle' as const,
 				}),
+				deleteProject: async () => {},
 				createSession: async (projectId) => ({
 					id: 'new-session',
 					projectId,
@@ -74,6 +75,7 @@ describe('App', () => {
 					createdAt: new Date().toISOString(),
 					endedAt: null,
 				}),
+				deleteSession: async () => {},
 				listSessions: async () => [],
 				sendMessage: async () => ({ sessionId: 's', events: [] }),
 				getConfig: async () => ({

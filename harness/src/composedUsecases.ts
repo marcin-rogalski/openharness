@@ -6,6 +6,8 @@ import type { ApproveToolCallUseCasePort } from '@/application/ports/usecases/Ap
 import type { BudgetUsecasePort } from '@/application/ports/usecases/BudgetUsecasePort'
 import type { CreateProjectUseCasePort } from '@/application/ports/usecases/CreateProjectUseCasePort'
 import type { CreateSessionUseCasePort } from '@/application/ports/usecases/CreateSessionUseCasePort'
+import type { DeleteProjectUseCasePort } from '@/application/ports/usecases/DeleteProjectUseCasePort'
+import type { DeleteSessionUseCasePort } from '@/application/ports/usecases/DeleteSessionUseCasePort'
 import type { DenyToolCallUseCasePort } from '@/application/ports/usecases/DenyToolCallUseCasePort'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
@@ -22,6 +24,8 @@ import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecas
 import BudgetUsecase from '@/application/usecases/BudgetUsecase'
 import CreateProjectUsecase from '@/application/usecases/CreateProjectUsecase'
 import CreateSessionUsecase from '@/application/usecases/CreateSessionUsecase'
+import DeleteProjectUsecase from '@/application/usecases/DeleteProjectUsecase'
+import DeleteSessionUsecase from '@/application/usecases/DeleteSessionUsecase'
 import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
@@ -37,8 +41,10 @@ type Driven = Awaited<ReturnType<typeof composeDriven>>
 export default function composeUsecases(driven: Driven): {
 	listProjects: ListProjectsUseCasePort
 	createProject: CreateProjectUseCasePort
+	deleteProject: DeleteProjectUseCasePort
 	listSessions: ListSessionsUseCasePort
 	createSession: CreateSessionUseCasePort
+	deleteSession: DeleteSessionUseCasePort
 	sendProjectMessage: SendProjectMessageUseCasePort
 	getConfig: GetConfigUseCasePort
 	updateConfig: UpdateConfigUseCasePort
@@ -71,6 +77,10 @@ export default function composeUsecases(driven: Driven): {
 	return {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
 		createProject: new CreateProjectUsecase(driven.projectRepository),
+		deleteProject: new DeleteProjectUsecase(
+			driven.projectRepository,
+			driven.sessionRepository,
+		),
 		listSessions: new ListSessionsUsecase(
 			driven.sessionRepository,
 			driven.eventLog,
@@ -79,6 +89,10 @@ export default function composeUsecases(driven: Driven): {
 			driven.projectRepository,
 			driven.sessionRepository,
 			driven.eventLog,
+		),
+		deleteSession: new DeleteSessionUsecase(
+			driven.projectRepository,
+			driven.sessionRepository,
 		),
 		sendProjectMessage: new SendProjectMessageUsecase(
 			driven.projectRepository,

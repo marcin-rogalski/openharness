@@ -26,4 +26,11 @@ export default class InMemoryProjectRepositoryAdapter
 			this.projects[index] = project
 		}
 	}
+
+	async delete(id: string): Promise<void> {
+		const index = this.projects.findIndex((p) => p.id === id)
+		if (index !== -1) {
+			this.projects.splice(index, 1)
+		}
+	}
 }

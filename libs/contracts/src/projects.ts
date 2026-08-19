@@ -31,3 +31,18 @@ export const createProjectEndpoint = {
 	body: CreateProjectRequestSchema,
 	response: CreateProjectResponseSchema,
 } satisfies EndpointSchema
+
+export const DeleteProjectParamsSchema = z.object({
+	projectId: z.string().min(1),
+})
+
+export const DeleteProjectResponseSchema = z.object({
+	ok: z.literal(true),
+})
+
+export const deleteProjectEndpoint = {
+	method: 'DELETE' as const,
+	path: '/api/projects/:projectId',
+	params: DeleteProjectParamsSchema,
+	response: DeleteProjectResponseSchema,
+} satisfies EndpointSchema

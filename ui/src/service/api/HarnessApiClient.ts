@@ -19,6 +19,11 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 			})
 			return payload.project
 		},
+		async deleteProject(projectId) {
+			await client.request('deleteProject', {
+				params: { projectId },
+			})
+		},
 		async listSessions(projectId) {
 			const payload = await client.request('listSessions', {
 				params: { projectId },
@@ -30,6 +35,11 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 				params: { projectId },
 			})
 			return payload.session
+		},
+		async deleteSession(projectId, sessionId) {
+			await client.request('deleteSession', {
+				params: { projectId, sessionId },
+			})
 		},
 		async sendMessage(projectId, content) {
 			const payload = await client.request('sendMessage', {

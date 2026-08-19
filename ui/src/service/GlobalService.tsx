@@ -18,7 +18,9 @@ interface GlobalContextValue {
 		selectProject: (projectId: string | null) => void
 		selectSession: (sessionId: string) => void
 		createProject: (name: string) => Promise<void>
+		deleteProject: (projectId: string) => Promise<void>
 		createSession: () => Promise<void>
+		deleteSession: (sessionId: string) => Promise<void>
 		sendMessage: (content: string) => Promise<void>
 		approveToolCall: (toolCallId: string) => Promise<void>
 		denyToolCall: (toolCallId: string) => Promise<void>
@@ -156,6 +158,22 @@ export function GlobalProvider({
 						})
 					}
 				},
+				deleteProject: async (projectId) => {
+					try {
+						await api.deleteProject(projectId)
+						const projects = state.projects.filter((p) => p.id !== projectId)
+						dispatch({ type: 'projects/set', projects })
+						if (state.selectedProjectId === projectId) {
+							dispatch({ type: 'project/select', projectId: null })
+						}
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to delete project'),
+						})
+					}
+				},
 				createSession: async () => {
 					const projectId = state.selectedProjectId
 					if (!projectId) return
@@ -167,6 +185,22 @@ export function GlobalProvider({
 						dispatch({
 							type: 'error/set',
 							error: getErrorMessage(error, 'Failed to create session'),
+						})
+					}
+				},
+				deleteSession: async (sessionId) => {
+					const projectId = state.selectedProjectId
+					if (!projectId) return
+					try {
+						await api.deleteSession(projectId, sessionId)
+						if (state.sessionId === sessionId) {
+							dispatch({ type: 'session/set', sessionId: null })
+						}
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to delete session'),
 						})
 					}
 				},

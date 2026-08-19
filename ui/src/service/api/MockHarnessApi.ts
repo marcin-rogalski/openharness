@@ -47,6 +47,12 @@ export function createMockHarnessApi(): HarnessApi {
 			mockState.projects.push(project)
 			return project
 		},
+		async deleteProject(projectId) {
+			const index = mockState.projects.findIndex((p) => p.id === projectId)
+			if (index !== -1) {
+				mockState.projects.splice(index, 1)
+			}
+		},
 		async listSessions(projectId): Promise<SessionSummary[]> {
 			if (!sessionId) return []
 			return [
@@ -70,6 +76,9 @@ export function createMockHarnessApi(): HarnessApi {
 				createdAt: new Date().toISOString(),
 				endedAt: null,
 			}
+		},
+		async deleteSession() {
+			sessionId = null
 		},
 		async sendMessage(projectId, content) {
 			const trimmed = content.trim()
