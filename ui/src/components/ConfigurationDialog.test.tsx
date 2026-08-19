@@ -20,6 +20,13 @@ function createApi(overrides: Partial<HarnessApi> = {}): HarnessApi {
 			status: 'idle' as const,
 		})),
 		listSessions: vi.fn(async () => []),
+		createSession: vi.fn(async (projectId: string) => ({
+			id: 's',
+			projectId,
+			status: 'active' as const,
+			createdAt: new Date().toISOString(),
+			endedAt: null,
+		})),
 		sendMessage: vi.fn(async () => ({ sessionId: 's', events: [] })),
 		getConfig: vi.fn(async () => ({
 			schemaVersion: 1 as const,

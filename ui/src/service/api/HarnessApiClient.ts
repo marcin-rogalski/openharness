@@ -25,6 +25,12 @@ export function createHarnessApiClient(baseUrl = ''): HarnessApi {
 			})
 			return payload.sessions
 		},
+		async createSession(projectId) {
+			const payload = await client.request('createSession', {
+				params: { projectId },
+			})
+			return payload.session
+		},
 		async sendMessage(projectId, content) {
 			const payload = await client.request('sendMessage', {
 				params: { projectId },

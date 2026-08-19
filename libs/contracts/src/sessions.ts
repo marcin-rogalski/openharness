@@ -34,5 +34,20 @@ export const listSessionsEndpoint = {
 	response: ListSessionsResponseSchema,
 } satisfies EndpointSchema
 
+export const CreateSessionRequestSchema = z.object({
+	projectId: z.string().min(1),
+})
+
+export const CreateSessionResponseSchema = z.object({
+	session: SessionSchema,
+})
+
+export const createSessionEndpoint = {
+	method: 'POST' as const,
+	path: '/api/projects/:projectId/sessions',
+	params: CreateSessionRequestSchema,
+	response: CreateSessionResponseSchema,
+} satisfies EndpointSchema
+
 export type Session = z.infer<typeof SessionSchema>
 export type SessionSummary = z.infer<typeof SessionSummarySchema>

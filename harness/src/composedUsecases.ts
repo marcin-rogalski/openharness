@@ -5,6 +5,7 @@ import type { AgentUsecasePort } from '@/application/ports/usecases/AgentUsecase
 import type { ApproveToolCallUseCasePort } from '@/application/ports/usecases/ApproveToolCallUseCasePort'
 import type { BudgetUsecasePort } from '@/application/ports/usecases/BudgetUsecasePort'
 import type { CreateProjectUseCasePort } from '@/application/ports/usecases/CreateProjectUseCasePort'
+import type { CreateSessionUseCasePort } from '@/application/ports/usecases/CreateSessionUseCasePort'
 import type { DenyToolCallUseCasePort } from '@/application/ports/usecases/DenyToolCallUseCasePort'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
@@ -20,6 +21,7 @@ import AgentUsecase from '@/application/usecases/AgentUsecase'
 import ApproveToolCallUsecase from '@/application/usecases/ApproveToolCallUsecase'
 import BudgetUsecase from '@/application/usecases/BudgetUsecase'
 import CreateProjectUsecase from '@/application/usecases/CreateProjectUsecase'
+import CreateSessionUsecase from '@/application/usecases/CreateSessionUsecase'
 import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
@@ -36,6 +38,7 @@ export default function composeUsecases(driven: Driven): {
 	listProjects: ListProjectsUseCasePort
 	createProject: CreateProjectUseCasePort
 	listSessions: ListSessionsUseCasePort
+	createSession: CreateSessionUseCasePort
 	sendProjectMessage: SendProjectMessageUseCasePort
 	getConfig: GetConfigUseCasePort
 	updateConfig: UpdateConfigUseCasePort
@@ -69,6 +72,11 @@ export default function composeUsecases(driven: Driven): {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
 		createProject: new CreateProjectUsecase(driven.projectRepository),
 		listSessions: new ListSessionsUsecase(
+			driven.sessionRepository,
+			driven.eventLog,
+		),
+		createSession: new CreateSessionUsecase(
+			driven.projectRepository,
 			driven.sessionRepository,
 			driven.eventLog,
 		),

@@ -7,6 +7,7 @@ import CreateBudgetEndpoint from '@/infrastructure/driving/CreateBudgetEndpoint'
 import CreatePermissionEndpoint from '@/infrastructure/driving/CreatePermissionEndpoint'
 import CreateProjectEndpoint from '@/infrastructure/driving/CreateProjectEndpoint'
 import CreateRuleEndpoint from '@/infrastructure/driving/CreateRuleEndpoint'
+import CreateSessionEndpoint from '@/infrastructure/driving/CreateSessionEndpoint'
 import DenyToolCallEndpoint from '@/infrastructure/driving/DenyToolCallEndpoint'
 import GetConfigEndpoint from '@/infrastructure/driving/GetConfigEndpoint'
 import HealthEndpoint from '@/infrastructure/driving/HealthEndpoint'
@@ -32,6 +33,7 @@ export default function composeDriving(usecases: Usecases) {
 		new ListProjectsEndpoint(usecases.listProjects),
 		new CreateProjectEndpoint(usecases.createProject),
 		new ListSessionsEndpoint(usecases.listSessions),
+		new CreateSessionEndpoint(usecases.createSession),
 		new SendProjectMessageEndpoint(usecases.sendProjectMessage),
 		new GetConfigEndpoint(usecases.getConfig),
 		new UpdateConfigEndpoint(usecases.updateConfig),

@@ -18,6 +18,7 @@ interface GlobalContextValue {
 		selectProject: (projectId: string | null) => void
 		selectSession: (sessionId: string) => void
 		createProject: (name: string) => Promise<void>
+		createSession: () => Promise<void>
 		sendMessage: (content: string) => Promise<void>
 		approveToolCall: (toolCallId: string) => Promise<void>
 		denyToolCall: (toolCallId: string) => Promise<void>
@@ -152,6 +153,20 @@ export function GlobalProvider({
 						dispatch({
 							type: 'error/set',
 							error: getErrorMessage(error, 'Failed to create project'),
+						})
+					}
+				},
+				createSession: async () => {
+					const projectId = state.selectedProjectId
+					if (!projectId) return
+					try {
+						const session = await api.createSession(projectId)
+						dispatch({ type: 'session/set', sessionId: session.id })
+						dispatch({ type: 'error/set', error: null })
+					} catch (error: unknown) {
+						dispatch({
+							type: 'error/set',
+							error: getErrorMessage(error, 'Failed to create session'),
 						})
 					}
 				},

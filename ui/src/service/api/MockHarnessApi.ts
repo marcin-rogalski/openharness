@@ -61,6 +61,16 @@ export function createMockHarnessApi(): HarnessApi {
 				},
 			]
 		},
+		async createSession(projectId) {
+			sessionId = crypto.randomUUID()
+			return {
+				id: sessionId,
+				projectId,
+				status: 'active' as const,
+				createdAt: new Date().toISOString(),
+				endedAt: null,
+			}
+		},
 		async sendMessage(projectId, content) {
 			const trimmed = content.trim()
 			if (!trimmed) {

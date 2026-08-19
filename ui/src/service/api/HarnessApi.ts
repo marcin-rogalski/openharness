@@ -4,6 +4,7 @@ import type {
 	ConfigSchema,
 	PermissionSchema,
 	RuleSchema,
+	SessionSchema,
 	SessionSummarySchema,
 	UpdateConfigBodySchema,
 	UpdateConfigResponseSchema,
@@ -22,6 +23,7 @@ export type Rule = z.infer<typeof RuleSchema>
 export type Budget = z.infer<typeof BudgetSchema>
 export type Permission = z.infer<typeof PermissionSchema>
 export type SessionSummary = z.infer<typeof SessionSummarySchema>
+export type Session = z.infer<typeof SessionSchema>
 
 export interface SendMessageResult {
 	sessionId: string
@@ -33,6 +35,7 @@ export interface HarnessApi {
 	listProjects(): Promise<Project[]>
 	createProject(name: string): Promise<Project>
 	listSessions(projectId: string): Promise<SessionSummary[]>
+	createSession(projectId: string): Promise<Session>
 	sendMessage(projectId: string, content: string): Promise<SendMessageResult>
 	getConfig(): Promise<HarnessConfig>
 	updateConfig(input: UpdateConfigInput): Promise<UpdateConfigResult>
