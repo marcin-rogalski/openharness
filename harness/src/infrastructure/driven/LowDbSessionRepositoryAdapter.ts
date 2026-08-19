@@ -19,6 +19,10 @@ export default class LowDbSessionRepositoryAdapter
 		)
 	}
 
+	async listByProjectId(projectId: string): Promise<Session[]> {
+		return this.store.db.data.sessions.filter((s) => s.projectId === projectId)
+	}
+
 	async save(session: Session): Promise<void> {
 		const index = this.store.db.data.sessions.findIndex(
 			(s) => s.id === session.id,

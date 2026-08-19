@@ -1,3 +1,4 @@
+import type { EndpointSchema } from '@openharness/fetch'
 import { z } from 'zod'
 
 export const SessionSchema = z.object({
@@ -17,6 +18,21 @@ export const SessionSummarySchema = z.object({
 	eventCount: z.number().int().nonnegative(),
 	lastEventAt: z.string().nullable(),
 })
+
+export const ListSessionsParamsSchema = z.object({
+	projectId: z.string().min(1),
+})
+
+export const ListSessionsResponseSchema = z.object({
+	sessions: z.array(SessionSummarySchema),
+})
+
+export const listSessionsEndpoint = {
+	method: 'GET' as const,
+	path: '/api/projects/:projectId/sessions',
+	params: ListSessionsParamsSchema,
+	response: ListSessionsResponseSchema,
+} satisfies EndpointSchema
 
 export type Session = z.infer<typeof SessionSchema>
 export type SessionSummary = z.infer<typeof SessionSummarySchema>

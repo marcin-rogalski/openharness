@@ -91,6 +91,7 @@ describe('GlobalStateSchema', () => {
 			GlobalStateSchema.parse({
 				projects: [],
 				selectedProjectId: null,
+				sessions: [],
 				sessionId: null,
 				timeline: [],
 				error: null,
@@ -99,6 +100,7 @@ describe('GlobalStateSchema', () => {
 		).toEqual({
 			projects: [],
 			selectedProjectId: null,
+			sessions: [],
 			sessionId: null,
 			timeline: [],
 			error: null,
@@ -111,6 +113,7 @@ describe('GlobalStateSchema', () => {
 			GlobalStateSchema.parse({
 				projects: [],
 				selectedProjectId: null,
+				sessions: [],
 				sessionId: null,
 				timeline: [],
 				error: null,
@@ -128,6 +131,7 @@ describe('GlobalStateSchema', () => {
 			GlobalStateSchema.parse({
 				projects: [],
 				selectedProjectId: 'nope',
+				sessions: [],
 				sessionId: null,
 				timeline: [],
 				error: null,

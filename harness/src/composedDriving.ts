@@ -14,6 +14,7 @@ import ListBudgetsEndpoint from '@/infrastructure/driving/ListBudgetsEndpoint'
 import ListPermissionsEndpoint from '@/infrastructure/driving/ListPermissionsEndpoint'
 import ListProjectsEndpoint from '@/infrastructure/driving/ListProjectsEndpoint'
 import ListRulesEndpoint from '@/infrastructure/driving/ListRulesEndpoint'
+import ListSessionsEndpoint from '@/infrastructure/driving/ListSessionsEndpoint'
 import SendProjectMessageEndpoint from '@/infrastructure/driving/SendProjectMessageEndpoint'
 import UpdateAgentEndpoint from '@/infrastructure/driving/UpdateAgentEndpoint'
 import UpdateBudgetEndpoint from '@/infrastructure/driving/UpdateBudgetEndpoint'
@@ -28,6 +29,7 @@ export default function composeDriving(usecases: Usecases) {
 	return [
 		new HealthEndpoint(),
 		new ListProjectsEndpoint(usecases.listProjects),
+		new ListSessionsEndpoint(usecases.listSessions),
 		new SendProjectMessageEndpoint(usecases.sendProjectMessage),
 		new GetConfigEndpoint(usecases.getConfig),
 		new UpdateConfigEndpoint(usecases.updateConfig),

@@ -53,6 +53,7 @@ describe('App', () => {
 			{
 				projects: [],
 				selectedProjectId: null,
+				sessions: [],
 				sessionId: null,
 				timeline: [],
 				error: null,
@@ -61,6 +62,7 @@ describe('App', () => {
 			{
 				health: async () => {},
 				listProjects: async () => [],
+				listSessions: async () => [],
 				sendMessage: async () => ({ sessionId: 's', events: [] }),
 				getConfig: async () => ({
 					schemaVersion: 1,

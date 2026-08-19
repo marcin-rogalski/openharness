@@ -7,6 +7,7 @@ import type { BudgetUsecasePort } from '@/application/ports/usecases/BudgetUseca
 import type { DenyToolCallUseCasePort } from '@/application/ports/usecases/DenyToolCallUseCasePort'
 import type { GetConfigUseCasePort } from '@/application/ports/usecases/GetConfigUseCasePort'
 import type { ListProjectsUseCasePort } from '@/application/ports/usecases/ListProjectsUseCasePort'
+import type { ListSessionsUseCasePort } from '@/application/ports/usecases/ListSessionsUseCasePort'
 import type { PermissionUsecasePort } from '@/application/ports/usecases/PermissionUsecasePort'
 import type { RuleUsecasePort } from '@/application/ports/usecases/RuleUsecasePort'
 import type { SendProjectMessageUseCasePort } from '@/application/ports/usecases/SendProjectMessageUseCasePort'
@@ -20,6 +21,7 @@ import BudgetUsecase from '@/application/usecases/BudgetUsecase'
 import DenyToolCallUsecase from '@/application/usecases/DenyToolCallUsecase'
 import GetConfigUsecase from '@/application/usecases/GetConfigUsecase'
 import ListProjectsUsecase from '@/application/usecases/ListProjectsUsecase'
+import ListSessionsUsecase from '@/application/usecases/ListSessionsUsecase'
 import PermissionUsecase from '@/application/usecases/PermissionUsecase'
 import RuleUsecase from '@/application/usecases/RuleUsecase'
 import SendProjectMessageUsecase from '@/application/usecases/SendProjectMessageUsecase'
@@ -30,6 +32,7 @@ type Driven = Awaited<ReturnType<typeof composeDriven>>
 
 export default function composeUsecases(driven: Driven): {
 	listProjects: ListProjectsUseCasePort
+	listSessions: ListSessionsUseCasePort
 	sendProjectMessage: SendProjectMessageUseCasePort
 	getConfig: GetConfigUseCasePort
 	updateConfig: UpdateConfigUseCasePort
@@ -61,6 +64,10 @@ export default function composeUsecases(driven: Driven): {
 
 	return {
 		listProjects: new ListProjectsUsecase(driven.projectRepository),
+		listSessions: new ListSessionsUsecase(
+			driven.sessionRepository,
+			driven.eventLog,
+		),
 		sendProjectMessage: new SendProjectMessageUsecase(
 			driven.projectRepository,
 			driven.sessionRepository,

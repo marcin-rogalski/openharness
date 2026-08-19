@@ -14,6 +14,7 @@ function createApi(overrides: Partial<HarnessApi> = {}): HarnessApi {
 	return {
 		health: vi.fn(async () => {}),
 		listProjects: vi.fn(async () => []),
+		listSessions: vi.fn(async () => []),
 		sendMessage: vi.fn(async () => ({ sessionId: 's', events: [] })),
 		getConfig: vi.fn(async () => ({
 			schemaVersion: 1 as const,

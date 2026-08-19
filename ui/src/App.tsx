@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ApprovalDialog from '@/components/ApprovalDialog'
 import ConfigurationDialog from '@/components/ConfigurationDialog'
 import MessagePanel from '@/components/MessagePanel'
+import SessionPanel from '@/components/SessionPanel'
 import SettingsDialog from '@/components/SettingsDialog'
 import type { HarnessApi } from '@/service/api/HarnessApi'
 import type { UiConfig } from '@/service/config/UiConfig'
@@ -92,6 +93,8 @@ export default function App({
 					? `Selected: ${selectedProject.name}`
 					: 'No project selected'}
 			</p>
+
+			<SessionPanel />
 
 			<MessagePanel />
 

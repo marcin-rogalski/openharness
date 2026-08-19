@@ -34,7 +34,13 @@ export function globalReducer(
 			return {
 				...state,
 				selectedProjectId: action.projectId,
+				sessions: [],
 				sessionId: null,
+			}
+		case 'sessions/set':
+			return {
+				...state,
+				sessions: action.sessions,
 			}
 		case 'timeline/append': {
 			if (state.timeline.some((entry) => entry.id === action.entry.id)) {
@@ -49,6 +55,7 @@ export function globalReducer(
 			return {
 				...state,
 				sessionId: action.sessionId,
+				timeline: [],
 			}
 		case 'error/set':
 			return {

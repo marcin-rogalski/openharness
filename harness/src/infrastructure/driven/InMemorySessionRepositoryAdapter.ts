@@ -19,6 +19,10 @@ export default class InMemorySessionRepositoryAdapter
 		return null
 	}
 
+	async listByProjectId(projectId: string): Promise<Session[]> {
+		return [...this.sessions.values()].filter((s) => s.projectId === projectId)
+	}
+
 	async save(session: Session): Promise<void> {
 		this.sessions.set(session.id, session)
 	}

@@ -7,6 +7,7 @@ import type {
 	HarnessConfig,
 	Permission,
 	Rule,
+	SessionSummary,
 	UpdateConfigInput,
 } from './HarnessApi'
 
@@ -36,6 +37,20 @@ export function createMockHarnessApi(): HarnessApi {
 		},
 		async listProjects() {
 			return mockState.projects
+		},
+		async listSessions(projectId): Promise<SessionSummary[]> {
+			if (!sessionId) return []
+			return [
+				{
+					id: sessionId,
+					projectId,
+					status: 'active',
+					createdAt: new Date().toISOString(),
+					endedAt: null,
+					eventCount: 5,
+					lastEventAt: new Date().toISOString(),
+				},
+			]
 		},
 		async sendMessage(projectId, content) {
 			const trimmed = content.trim()

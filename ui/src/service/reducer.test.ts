@@ -8,6 +8,7 @@ const baseState: GlobalState = {
 		{ id: 'project-2', name: 'Tempo', status: 'idle' },
 	],
 	selectedProjectId: 'project-1',
+	sessions: [],
 	sessionId: null,
 	timeline: [],
 	error: null,

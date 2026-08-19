@@ -4,6 +4,7 @@ import type {
 	ConfigSchema,
 	PermissionSchema,
 	RuleSchema,
+	SessionSummarySchema,
 	UpdateConfigBodySchema,
 	UpdateConfigResponseSchema,
 } from '@openharness/contracts'
@@ -20,6 +21,7 @@ export type Agent = z.infer<typeof AgentSchema>
 export type Rule = z.infer<typeof RuleSchema>
 export type Budget = z.infer<typeof BudgetSchema>
 export type Permission = z.infer<typeof PermissionSchema>
+export type SessionSummary = z.infer<typeof SessionSummarySchema>
 
 export interface SendMessageResult {
 	sessionId: string
@@ -29,6 +31,7 @@ export interface SendMessageResult {
 export interface HarnessApi {
 	health(): Promise<void>
 	listProjects(): Promise<Project[]>
+	listSessions(projectId: string): Promise<SessionSummary[]>
 	sendMessage(projectId: string, content: string): Promise<SendMessageResult>
 	getConfig(): Promise<HarnessConfig>
 	updateConfig(input: UpdateConfigInput): Promise<UpdateConfigResult>

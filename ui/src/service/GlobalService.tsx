@@ -16,6 +16,7 @@ interface GlobalContextValue {
 	actions: {
 		setProjects: (projects: Project[]) => void
 		selectProject: (projectId: string | null) => void
+		selectSession: (sessionId: string) => void
 		sendMessage: (content: string) => Promise<void>
 		approveToolCall: (toolCallId: string) => Promise<void>
 		denyToolCall: (toolCallId: string) => Promise<void>
@@ -70,6 +71,27 @@ export function GlobalProvider({
 	}, [api])
 
 	useEffect(() => {
+		if (!state.selectedProjectId) {
+			return
+		}
+
+		let active = true
+
+		api
+			.listSessions(state.selectedProjectId)
+			.then((sessions) => {
+				if (active) {
+					dispatch({ type: 'sessions/set', sessions })
+				}
+			})
+			.catch(() => {})
+
+		return () => {
+			active = false
+		}
+	}, [api, state.selectedProjectId])
+
+	useEffect(() => {
 		if (!state.sessionId) {
 			return
 		}
@@ -116,6 +138,8 @@ export function GlobalProvider({
 				setProjects: (projects) => dispatch({ type: 'projects/set', projects }),
 				selectProject: (projectId) =>
 					dispatch({ type: 'project/select', projectId }),
+				selectSession: (sessionId) =>
+					dispatch({ type: 'session/set', sessionId }),
 				sendMessage: async (content) => {
 					const trimmed = content.trim()
 					const projectId = state.selectedProjectId

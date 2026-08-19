@@ -124,6 +124,7 @@ describe('GlobalService', () => {
 		const api = {
 			health: vi.fn(),
 			listProjects: vi.fn().mockRejectedValue(new Error('boom')),
+			listSessions: vi.fn().mockResolvedValue([]),
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
@@ -158,6 +159,7 @@ describe('GlobalService', () => {
 		const api = {
 			health: vi.fn(),
 			listProjects: vi.fn().mockResolvedValue(mockState.projects),
+			listSessions: vi.fn().mockResolvedValue([]),
 			sendMessage: vi.fn().mockRejectedValue(new Error('send boom')),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
@@ -198,6 +200,7 @@ describe('GlobalService', () => {
 		const api = {
 			health: vi.fn(),
 			listProjects: vi.fn().mockRejectedValue('boom'),
+			listSessions: vi.fn().mockResolvedValue([]),
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),
@@ -241,6 +244,7 @@ describe('GlobalService', () => {
 						}
 					}),
 			),
+			listSessions: vi.fn().mockResolvedValue([]),
 			sendMessage: vi.fn(),
 			getConfig: vi.fn(),
 			updateConfig: vi.fn(),

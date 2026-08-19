@@ -1,11 +1,17 @@
 import {
 	ProjectSchema,
 	SessionEventSchema,
+	SessionSummarySchema,
 	TimelineEntrySchema,
 } from '@openharness/contracts'
 import { z } from 'zod'
 
-export { ProjectSchema, SessionEventSchema, TimelineEntrySchema }
+export {
+	ProjectSchema,
+	SessionEventSchema,
+	SessionSummarySchema,
+	TimelineEntrySchema,
+}
 
 export const PendingApprovalSchema = z.object({
 	toolCallId: z.string().min(1),
@@ -17,6 +23,7 @@ export const GlobalStateSchema = z
 	.object({
 		projects: z.array(ProjectSchema),
 		selectedProjectId: z.string().nullable(),
+		sessions: z.array(SessionSummarySchema),
 		sessionId: z.string().nullable(),
 		timeline: z.array(TimelineEntrySchema),
 		error: z.string().nullable(),
@@ -41,6 +48,10 @@ export const GlobalActionSchema = z.discriminatedUnion('type', [
 		projectId: z.string().nullable(),
 	}),
 	z.object({
+		type: z.literal('sessions/set'),
+		sessions: z.array(SessionSummarySchema),
+	}),
+	z.object({
 		type: z.literal('timeline/append'),
 		entry: TimelineEntrySchema,
 	}),
@@ -63,6 +74,7 @@ export const GlobalActionSchema = z.discriminatedUnion('type', [
 
 export type Project = z.infer<typeof ProjectSchema>
 export type SessionEvent = z.infer<typeof SessionEventSchema>
+export type SessionSummary = z.infer<typeof SessionSummarySchema>
 export type TimelineEntry = z.infer<typeof TimelineEntrySchema>
 export type PendingApproval = z.infer<typeof PendingApprovalSchema>
 export type GlobalState = z.infer<typeof GlobalStateSchema>
